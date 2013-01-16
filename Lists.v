@@ -527,12 +527,18 @@ Proof.
 Theorem app_length : forall l1 l2 : natlist, 
   length (l1 ++ l2) = (length l1) + (length l2).
 Proof.
-  (* WORKED IN CLASS *)
+  intros l1 l2. induction l1 as [| n l1'].
+  Case "l1 = nil".
+  simpl. reflexivity. simpl.
+  rewrite -> IHy. reflexivity. Qed.
+
+  (* WORKED IN CLASS 
   intros l1 l2. induction l1 as [| n l1'].
   Case "l1 = nil".
     reflexivity.
   Case "l1 = cons".
     simpl. rewrite -> IHl1'. reflexivity.  Qed.
+   *)
 
 (** For a slightly more involved example of an inductive proof
     over lists, suppose we define a "cons on the right" function
@@ -976,4 +982,5 @@ Proof.
 End Dictionary.
 
 End NatList.
+
 
