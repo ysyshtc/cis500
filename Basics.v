@@ -556,7 +556,7 @@ Example test_blt_nat1:             (blt_nat 2 2) = false.
 Proof. simpl. reflexivity. Qed.
 Example test_blt_nat2:             (blt_nat 2 4) = true.
 Proof. simpl. reflexivity. Qed.
-Example test_blt_nat3:             (blt_nat 4 2) = .
+Example test_blt_nat3:             (blt_nat 4 2) = false.
 Proof. simpl. reflexivity. Qed.
 (** [] *)
 
@@ -684,7 +684,7 @@ Theorem plus_id_example : forall n m:nat,
 Proof.
   intros n m.   (* move both quantifiers into the context *)
   intros H.     (* move the hypothesis into the context *)
-  rewrite -> H. (* Rewrite the goal using the hypothesis *)
+  rewrite <- H. (* Rewrite the goal using the hypothesis *)
   reflexivity.  Qed.
 
 (** The first line of the proof moves the universally quantified
@@ -706,8 +706,12 @@ Proof.
 Theorem plus_id_exercise : forall n m o : nat,
   n = m -> m = o -> n + m = m + o.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m o.
+  intros H1 H2.
+  rewrite <- H2.
+  rewrite <- H1.
+  reflexivity. Qed.
+
 
 (** As we've seen in earlier examples, the [Admitted] command
     tells Coq that we want to skip trying to prove this theorem and
@@ -735,8 +739,9 @@ Proof.
 Theorem mult_1_plus : forall n m : nat,
   (1 + n) * m = m + (n * m).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m.
+  rewrite -> plus_1_l.
+  reflexivity. Qed.
 
 (* ###################################################################### *)
 (** * Proof by Case Analysis *) 
@@ -819,8 +824,10 @@ Proof.
 Theorem zero_nbeq_plus_1 : forall n : nat,
   beq_nat 0 (n + 1) = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n.
+  destruct n.
+  reflexivity.
+  reflexivity. Qed.
 
 (* ###################################################################### *)
 (** * More Exercises *)
@@ -834,13 +841,28 @@ Theorem identity_fn_applied_twice :
   (forall (x : bool), f x = x) ->
   forall (b : bool), f (f b) = b.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros f. intros H. intros b.
+  rewrite -> H.
+  rewrite -> H.
+  reflexivity. Qed.
+
 
 (** Now state and prove a theorem [negation_fn_applied_twice] similar
     to the previous one but where the second hypothesis says that the
     function [f] has the property that [f x = negb x].*)
 
-(* FILL IN HERE *)
+Theorem negation_fn_applied_twice :
+  forall (f : bool -> bool),
+  (forall (x : bool), f x = negb x) ->
+  forall (b : bool), f (f b) = b.
+Proof.
+  intros f. intros H. intros b.
+  rewrite -> H.
+  rewrite -> H.
+  destruct b.
+  reflexivity.
+  reflexivity. Qed.
+  
 
 (** **** Exercise: 2 stars (andb_eq_orb) *)
 (** Prove the following theorem.  (You may need to first prove a
@@ -851,7 +873,19 @@ Theorem andb_eq_orb :
   (andb b c = orb b c) ->
   b = c.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b c.
+  destruct b.
+  destruct c.
+  reflexivity.
+  simpl.
+  intros H.
+  rewrite <- H.
+  reflexivity.
+  simpl.
+  intros H.
+  rewrite <- H.
+  reflexivity. Qed.
+
 
 (** **** Exercise: 3 stars (binary) *)
 (** Consider a different, more efficient representation of natural
@@ -887,6 +921,8 @@ Proof.
         then converting it to unary should yield the same result as first
         converting it to unary and then incrementing. 
 *)
+
+
 
 (* FILL IN HERE *)
 (** [] *)
