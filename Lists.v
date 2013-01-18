@@ -1,7 +1,5 @@
 (** * Lists: Working with Structured Data *)
 
-(* $Date: 2013-01-04 20:13:58 -0500 (Fri, 04 Jan 2013) $ *)
-
 Require Export Induction.
 
 Module NatList. 
@@ -10,7 +8,7 @@ Module NatList.
 (** * Pairs of Numbers *)
 
 (** In an [Inductive] type definition, each constructor can take
-    any number of parameters -- none (as with [true] and [O]), one (as
+    any number of arguments -- none (as with [true] and [O]), one (as
     with [S]), or more than one, as in this definition: *)
 
 Inductive natprod : Type :=
@@ -22,7 +20,7 @@ Inductive natprod : Type :=
 
 (** We can construct an element of [natprod] like this: *)
 
-Eval simpl in (pair 3 5).
+Check (pair 3 5).
 
 (** Here are two simple function definitions for extracting the
     first and second components of a pair.  (The definitions also
@@ -39,6 +37,7 @@ Definition snd (p : natprod) : nat :=
   end.
 
 Eval simpl in (fst (pair 3 5)).
+(* ===> 3 *)
 
 (** Since pairs are used quite a bit, it is nice to be able to
     write them with the standard mathematical notation [(x,y)] instead
@@ -78,8 +77,8 @@ Theorem surjective_pairing' : forall (n m : nat),
 Proof.
   reflexivity.  Qed.
 
-(** But reflexivity is not enough if we state the lemma in a more
-    natural way: *)
+(** Note that [reflexivity] is not enough if we state the lemma in a
+    more natural way: *)
 
 Theorem surjective_pairing_stuck : forall (p : natprod),
   p = (fst p, snd p).
@@ -167,9 +166,9 @@ Notation "x + y" := (plus x y)
    (By the way, it's worth noting in passing that expressions like "[1
    + 2 :: [3]]" can be a little confusing when you read them in a .v
    file.  The inner brackets, around 3, indicate a list, but the outer
-   brackets are there to instruct the "coqdoc" tool that the bracketed
-   part should be displayed as Coq code rather than running text.
-   These brackets don't appear in the generated HTML.)
+   brackets, which are invisible in the HTML rendering, are there to
+   instruct the "coqdoc" tool that the bracketed part should be
+   displayed as Coq code rather than running text.)
 
    The second and third [Notation] declarations above introduce the
    standard square-bracket notation for lists; the right-hand side of
@@ -242,9 +241,10 @@ Proof. reflexivity.  Qed.
 Example test_tail:            tail [1,2,3] = [2,3].
 Proof. reflexivity.  Qed.
 
-(** **** Exercise: 2 stars, recommended (list_funs) *)
+(** **** Exercise: 2 stars (list_funs) *)
 (** Complete the definitions of [nonzeros], [oddmembers] and
-    [countoddmembers] below.  *)
+    [countoddmembers] below. Have a look at the tests to understand
+    what these functions should do. *)
 
 Fixpoint nonzeros (l:natlist) : natlist :=
   (* FILL IN HERE *) admit.
@@ -269,7 +269,7 @@ Example test_countoddmembers3:    countoddmembers nil = 0.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, recommended (alternate) *)
+(** **** Exercise: 3 stars, advanced (alternate) *)
 (** Complete the definition of [alternate], which "zips up" two lists
     into one, alternating between elements taken from the first list
     and elements from the second.  See the tests below for more
@@ -307,7 +307,7 @@ Example test_alternate4:        alternate [] [20,30] = [20,30].
 
 Definition bag := natlist.  
 
-(** **** Exercise: 3 stars, recommended (bag_functions) *)
+(** **** Exercise: 3 stars (bag_functions) *)
 (** Complete the following definitions for the functions
     [count], [sum], [add], and [member] for bags. *)
 
@@ -395,7 +395,7 @@ Example test_subset2:              subset [1,2,2] [2,1,4,1] = false.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, recommended (bag_theorem) *)
+(** **** Exercise: 3 stars (bag_theorem) *)
 (** Write down an interesting theorem about bags involving the
     functions [count] and [add], and prove it.  Note that, since this
     problem is somewhat open-ended, it's possible that you may come up
@@ -416,8 +416,7 @@ Example test_subset2:              subset [1,2,2] [2,1,4,1] = false.
 
 Theorem nil_app : forall l:natlist,
   [] ++ l = l.
-Proof.
-   reflexivity.  Qed.
+Proof. reflexivity. Qed.
 
 (** ... because the [[]] is substituted into the match position
     in the definition of [app], allowing the match itself to be
@@ -522,23 +521,17 @@ Proof.
        n :: ((l1' ++ l2) ++ l3) = n :: (l1' ++ (l2 ++ l3)),
      which is immediate from the induction hypothesis.  []
 
-  Here is an exercise to be worked together in class: *)
+  Here is a similar example to be worked together in class: *)
 
 Theorem app_length : forall l1 l2 : natlist, 
   length (l1 ++ l2) = (length l1) + (length l2).
 Proof.
-  intros l1 l2. induction l1 as [| n l1'].
-  Case "l1 = nil".
-  simpl. reflexivity. simpl.
-  rewrite -> IHy. reflexivity. Qed.
-
-  (* WORKED IN CLASS 
+  (* WORKED IN CLASS *)
   intros l1 l2. induction l1 as [| n l1'].
   Case "l1 = nil".
     reflexivity.
   Case "l1 = cons".
     simpl. rewrite -> IHl1'. reflexivity.  Qed.
-   *)
 
 (** For a slightly more involved example of an inductive proof
     over lists, suppose we define a "cons on the right" function
@@ -577,15 +570,16 @@ Proof.
   Case "l = []".
     reflexivity.
   Case "l = n :: l'".
-    (* This is the tricky case.  Let's begin as usual by simplifying. *)
+    (* This is the tricky case.  Let's begin as usual 
+       by simplifying. *)
     simpl. 
-    (* Now we seem to be stuck: the goal is an equality involving
-       [snoc], but we don't have any equations in either the
-       immediate context or the global environment that have
-       anything to do with [snoc]! 
+    (* Now we seem to be stuck: the goal is an equality 
+       involving [snoc], but we don't have any equations 
+       in either the immediate context or the global 
+       environment that have anything to do with [snoc]! 
 
-       We can make a little progress by using the IH to rewrite the 
-       goal... *)
+       We can make a little progress by using the IH to 
+       rewrite the goal... *)
     rewrite <- IHl'.
     (* ... but now we can't go any further. *)
 Admitted.
@@ -613,6 +607,55 @@ Proof.
   Case "l = cons".
     simpl. rewrite -> length_snoc. 
     rewrite -> IHl'. reflexivity.  Qed.
+
+(** ** Discussion... *)
+
+(* QUIZ *)
+(** To prove the following theorem, which tactics will we need besides
+    [intros], [simpl], [rewrite] and [reflexivity]?  (1) none (2) [destruct],
+    (3) [induction on n], (4) [induction on l], or (5) can't be
+    done with the tactics we've seen.
+    Theorem foo1 : forall n :nat, forall l: natlist, 
+    repeat n 0 = l -> length l = 0.
+*)
+(* /QUIZ *)
+
+(* QUIZ *)
+(** What about the next one? 
+    Theorem foo2 :  forall n m:nat, forall l: natlist,
+    repeat n m = l -> length l = m.
+    Which tactics do we need besides [intros], [simpl], [rewrite] and
+    [reflexivity]?  (1) none (2) [destruct],
+    (3) [induction on m], (4) [induction on l], or (5) can't be
+    done with the tactics we've seen.
+*)
+(* /QUIZ *)
+
+(* SOONER check that having two cases that are true is ok *)
+
+(* QUIZ *)
+(** What about the next one? 
+    Theorem foo3 :   forall l: natlist, forall n m:nat,
+    length l = m -> length (snoc l n) = S m.
+    Which tactics do we need besides [intros], [simpl], [rewrite] and
+    [reflexivity]?  (1) none (2) [destruct],
+    (3) [induction on m], (4) [induction on l], (5) using an auxiliary lemma,
+    or (6) can't be done with the tactics we've seen.
+*)
+(* /QUIZ *)
+
+(* QUIZ *)
+(** What about the next one? 
+    Theorem foo4 :  forall n :nat, forall l1 l2: natlist,
+    snoc l1 n = l2 -> (blt_nat 0 (length l2)) = true.
+    Which tactics do we need besides [intros], [simpl], [rewrite] and
+    [reflexivity]?  (1) none (2) [destruct],
+    (3) [induction on n], (4) [induction on l1], (5) [induction on l2], 
+    (6) can't be done with the tactics we've seen.
+*)
+(* /QUIZ *)
+
+(* /TERSE *)
 
 (** For comparison, here are informal proofs of these two theorems: 
 
@@ -706,7 +749,7 @@ Proof.
 (* ###################################################### *)
 (** ** List Exercises, Part 1 *)
 
-(** **** Exercise: 3 stars, recommended (list_exercises) *)
+(** **** Exercise: 3 stars (list_exercises) *)
 (** More practice with lists. *)
 
 Theorem app_nil_end : forall l : natlist, 
@@ -751,7 +794,7 @@ Proof.
 (* ###################################################### *)
 (** ** List Exercises, Part 2 *)
 
-(** **** Exercise: 2 stars, recommended (list_design) *)
+(** **** Exercise: 2 stars (list_design) *)
 (** Design exercise: 
      - Write down a non-trivial theorem involving [cons]
        ([::]), [snoc], and [append] ([++]).  
@@ -760,9 +803,9 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (bag_proofs) *)
-(** If you did the optional exercise about bags above, here are a
-    couple of little theorems to prove about your definitions. *)
+(** **** Exercise: 3 stars, advanced (bag_proofs) *)
+(** Here are a couple of little theorems to prove about your
+    definitions about bags in the previous problem. *)
 
 Theorem count_member_nonzero : forall (s : bag),
   ble_nat 1 (count 1 (1 :: s)) = true.
@@ -793,7 +836,7 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 4 stars, optional (rev_injective) *)
+(** **** Exercise: 4 stars, advanced (rev_injective) *)
 (** Prove that the [rev] function is injective, that is,
 
     forall (l1 l2 : natlist), rev l1 = rev l2 -> l1 = l2.
@@ -904,7 +947,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, recommended (beq_natlist) *)
+(** **** Exercise: 2 stars (beq_natlist) *)
 (** Fill in the definition of [beq_natlist], which compares
     lists of numbers for equality.  Prove that [beq_natlist l l]
     yields [true] for every list [l]. *)
@@ -926,7 +969,7 @@ Proof.
 (** [] *)
 
 (* ###################################################### *)
-(** * Extended Exercise: Dictionaries *)
+(** * Dictionaries *)
 
 (** As a final illustration of how fundamental data structures
     can be defined in Coq, here is the declaration of a simple
@@ -958,13 +1001,15 @@ Definition insert (key value : nat) (d : dictionary) : dictionary :=
 Fixpoint find (key : nat) (d : dictionary) : natoption := 
   match d with 
   | empty         => None
-  | record k v d' => if (beq_nat key k) then (Some v) else (find key d')
+  | record k v d' => if (beq_nat key k) 
+                       then (Some v) 
+                       else (find key d')
   end.
 
 (** **** Exercise: 1 star (dictionary_invariant1) *)
 (** Complete the following proof. *)
 
-Theorem dictionary_invariant1 : forall (d : dictionary) (k v: nat),
+Theorem dictionary_invariant1' : forall (d : dictionary) (k v: nat),
   (find k (insert k v d)) = Some v.
 Proof.
  (* FILL IN HERE *) Admitted.
@@ -973,14 +1018,17 @@ Proof.
 (** **** Exercise: 1 star (dictionary_invariant2) *)
 (** Complete the following proof. *)
 
-Theorem dictionary_invariant2 : forall (d : dictionary) (m n o: nat),
+Theorem dictionary_invariant2' : forall (d : dictionary) (m n o: nat),
   (beq_nat m n) = false -> (find m d) = (find m (insert n o d)).
 Proof.
  (* FILL IN HERE *) Admitted.
 (** [] *)
 
+
+
 End Dictionary.
 
 End NatList.
 
+(* $Date: 2013-01-16 22:29:57 -0500 (Wed, 16 Jan 2013) $ *)
 
