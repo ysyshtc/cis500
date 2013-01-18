@@ -1,3 +1,6 @@
+(** Kyle Hardgrave (kyleh@seas)
+    Submitted late with permission of Prof. Pierce. Four hours. *)
+
 
 (** * Basics: Functional Programming in Coq *)
 
