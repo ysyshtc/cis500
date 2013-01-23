@@ -390,8 +390,15 @@ Proof.
 Theorem plus_swap : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
-  (* FILL IN HERE *) Admitted.
-
+  intros n m p.
+  rewrite -> plus_assoc.
+  rewrite -> plus_assoc.
+  assert (H: n + m = m + n).
+    Case "Assertion proof".
+    rewrite -> plus_comm.
+    reflexivity.
+  rewrite -> H.
+  reflexivity. Qed.
 
 (** Now prove commutativity of multiplication.  (You will probably
     need to define and prove a separate subsidiary theorem to be used
@@ -401,8 +408,23 @@ Proof.
 Theorem mult_comm : forall m n : nat,
  m * n = n * m.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros m n. induction n as [| n'].
+  Case "n = 0".
+    rewrite -> mult_0_r.
+    reflexivity.
+  Case "n = S n'".
+    rewrite -> mult_1_plus.
+    rewrite <- IHn'.
+    assert (H: forall x y : nat, x * (S y) = x + x * y).
+      SCase "Assertion proof".
+      intros x y.
+      destruct y.
+      SSCase "y = 0". 
+        rewrite -> mult_0_r.
+        rewrite -> plus_0_r.
+        rewrite -> mult_
+      SSCase "y = S y'". rewrite <- mult_1_plus.
+      rewrite <- plus_comm.
 
 (** **** Exercise: 2 stars, optional (evenb_n__oddb_Sn) *)
 
