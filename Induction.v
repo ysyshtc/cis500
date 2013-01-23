@@ -449,9 +449,8 @@ Proof.
 
 Theorem evenb_n__oddb_Sn : forall n : nat,
   evenb n = negb (evenb (S n)).
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+Proof. Admitted.
+
 
 (* ###################################################################### *)
 (** * More Exercises *)
