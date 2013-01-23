@@ -407,8 +407,8 @@ Proof.
 
 Theorem mult_comm : forall m n : nat,
  m * n = n * m.
-Proof.
-  intros m n. induction n as [| n'].
+Proof. Admitted.
+(*  intros m n. induction n as [| n'].
   Case "n = 0".
     rewrite -> mult_0_r.
     reflexivity.
@@ -425,7 +425,7 @@ Proof.
         rewrite -> mult_
       SSCase "y = S y'". rewrite <- mult_1_plus.
       rewrite <- plus_comm.
-
+*)
 (** **** Exercise: 2 stars, optional (evenb_n__oddb_Sn) *)
 
 (** Prove the following simple fact: *)
