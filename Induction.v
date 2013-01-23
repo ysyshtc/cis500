@@ -1,5 +1,5 @@
 (** * Induction: Proof by Induction *)
- 
+
 
 (** The next line imports all of our definitions from the
     previous chapter. *)
@@ -9,16 +9,16 @@ Require Export Basics.
 (** For it to work, you need to use [coqc] to compile [Basics.v]
     into [Basics.vo].  (This is like making a .class file from a .java
     file, or a .o file from a .c file.)
-  
+
     Here are two ways to compile your code:
-  
+
      - CoqIDE:
-   
+
          Open [Basics.v].
          In the "Compile" menu, click on "Compile Buffer".
-   
+
      - Command line:
-   
+
          Run [coqc Basics.v]
 
     *)
@@ -81,8 +81,8 @@ Proof.
   Case "b = true".  (* <----- here *)
     reflexivity.
   Case "b = false".  (* <---- and here *)
-    rewrite <- H. 
-    reflexivity.  
+    rewrite <- H.
+    reflexivity.
 Qed.
 
 (** [Case] does something very straightforward: It simply adds a
@@ -115,9 +115,9 @@ Proof.
     destruct b.
     SCase "b = true". reflexivity.
     SCase "b = false". reflexivity. Qed.
-  
-  
-  
+
+
+
 (** [] *)
 
 (** There are no hard and fast rules for how proofs should be
@@ -234,19 +234,9 @@ Proof.
   Case "n = S n'".
     simpl. rewrite -> IHn'. reflexivity. Qed.
 
-Theorem plus_1_r : forall n:nat, n + 1 = S n.
-Proof.
-  intros n. induction n as [| n'].
-  Case "n = 0". reflexivity.
-  Case "n = S n'".
-    simpl.
-    rewrite -> IHn'.
-    reflexivity. Qed.
-
-  
-Theorem plus_n_Sm : forall n m : nat, 
+Theorem plus_n_Sm : forall n m : nat,
   S (n + m) = n + (S m).
-Proof. 
+Proof.
   intros n m. induction n as [| n'].
   Case "n = 0". reflexivity.
   Case "n = S n'".
@@ -258,12 +248,27 @@ Proof.
 Theorem plus_comm : forall n m : nat,
   n + m = m + n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m. induction n as [| n'].
+  Case "n = 0".
+    simpl.
+    rewrite -> plus_0_r.
+    reflexivity.
+  Case "n = Sn'".
+    simpl.
+    rewrite <- plus_n_Sm.
+    rewrite <- IHn'.
+    reflexivity. Qed.
 
 Theorem plus_assoc : forall n m p : nat,
   n + (m + p) = (n + m) + p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p. induction n as [| n'].
+  Case "n = 0". reflexivity.
+  Case "n = S n'".
+    simpl.
+    rewrite <- IHn'.
+    reflexivity. Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars (double_plus) *)
@@ -279,19 +284,26 @@ Fixpoint double (n:nat) :=
 (** Use induction to prove this simple fact about [double]: *)
 
 Lemma double_plus : forall n, double n = n + n .
-Proof.  
-  (* FILL IN HERE *) Admitted.
+Proof.
+  intros n. induction n as [| n'].
+  Case "n = 0". reflexivity.
+  Case "n = S n'".
+    simpl.
+    rewrite <- plus_n_Sm.
+    rewrite <- IHn'.
+    reflexivity. Qed.
+
 (** [] *)
 
 
 (** **** Exercise: 1 star (destruct_induction) *)
 (** Briefly explain the difference between the tactics
-    [destruct] and [induction].  
+    [destruct] and [induction]. *)
 
-(* FILL IN HERE *)
-
-*)
-(** [] *)
+(** [destruct] lets you prove something about a type by proving something
+    about each of its possible constructors. But [induction] is more
+    powerful in that it lets you take advantage of the recursive 
+    definition of a type to prove things based on its structure. *)
 
 
 (* ###################################################################### *)
@@ -314,7 +326,7 @@ Theorem mult_0_plus' : forall n m : nat,
   (0 + n) * m = n * m.
 Proof.
   intros n m.
-  assert (H: 0 + n = n). 
+  assert (H: 0 + n = n).
     Case "Proof of assertion". reflexivity.
   rewrite -> H.
   reflexivity.  Qed.
@@ -375,7 +387,7 @@ Proof.
 (** Use [assert] to help prove this theorem.  You shouldn't need to
     use induction. *)
 
-Theorem plus_swap : forall n m p : nat, 
+Theorem plus_swap : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -429,7 +441,7 @@ Theorem andb_false_r : forall b : bool,
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Theorem plus_ble_compat_l : forall n m p : nat, 
+Theorem plus_ble_compat_l : forall n m p : nat,
   ble_nat n m = true -> ble_nat (p + n) (p + m) = true.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -464,7 +476,7 @@ Proof.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (beq_nat_refl) *)
-Theorem beq_nat_refl : forall n : nat, 
+Theorem beq_nat_refl : forall n : nat,
   true = beq_nat n n.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -476,13 +488,13 @@ Proof.
    [replace (t) with (u)] replaces (all copies of) expression [t] in
    the goal by expression [u], and generates [t = u] as an additional
    subgoal. This is often useful when a plain [rewrite] acts on the wrong
-   part of the goal.  
+   part of the goal.
 
    Use the [replace] tactic to do a proof of [plus_swap'], just like
-   [plus_swap] but without needing [assert (n + m = m + n)]. 
+   [plus_swap] but without needing [assert (n + m = m + n)].
 *)
 
-Theorem plus_swap' : forall n m p : nat, 
+Theorem plus_swap' : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -578,7 +590,7 @@ Proof.
 
 Theorem plus_assoc' : forall n m p : nat,
   n + (m + p) = (n + m) + p.
-Proof. intros n m p. induction n as [| n']. reflexivity. 
+Proof. intros n m p. induction n as [| n']. reflexivity.
   simpl. rewrite -> IHn'. reflexivity.  Qed.
 
 (** Coq is perfectly happy with this as a proof.  For a human,
@@ -592,8 +604,8 @@ Proof. intros n m p. induction n as [| n']. reflexivity.
       n + (m + p) = (n + m) + p.
     _Proof_: By induction on [n].
 
-    - First, suppose [n = 0].  We must show 
-        0 + (m + p) = (0 + m) + p.  
+    - First, suppose [n = 0].  We must show
+        0 + (m + p) = (0 + m) + p.
       This follows directly from the definition of [+].
 
     - Next, suppose [n = S n'], where
@@ -621,9 +633,9 @@ Proof. intros n m p. induction n as [| n']. reflexivity.
 Theorem plus_assoc'' : forall n m p : nat,
   n + (m + p) = (n + m) + p.
 Proof.
-  intros n m p. induction n as [| n']. 
+  intros n m p. induction n as [| n'].
   Case "n = 0".
-    reflexivity. 
+    reflexivity.
   Case "n = S n'".
     simpl. rewrite -> IHn'. reflexivity.   Qed.
 
@@ -631,7 +643,7 @@ Proof.
 (** Translate your solution for [plus_comm] into an informal proof. *)
 
 (** Theorem: Addition is commutative.
- 
+
     Proof: (* FILL IN HERE *)
 []
 *)
@@ -640,9 +652,9 @@ Proof.
 (** Write an informal proof of the following theorem, using the
     informal proof of [plus_assoc] as a model.  Don't just
     paraphrase the Coq tactics into English!
- 
+
     Theorem: [true = beq_nat n n] for any [n].
-    
+
     Proof: (* FILL IN HERE *)
 []
  *)
