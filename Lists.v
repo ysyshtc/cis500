@@ -895,7 +895,12 @@ Proof.
        ([::]), [snoc], and [append] ([++]).  
      - Prove it. *) 
 
-(* TODO: [Theorem list_theorem : forall (n:nat) (l:natlist),]*)
+Theorem list_thrm : forall (n:nat) (l1 l2 : natlist),
+  l1 ++ (n :: l2) = (snoc l1 n) ++ l2.
+Proof.
+  intros n l1 l2. induction l1 as [| h t].
+  Case "l1 = nil". reflexivity.
+  Case "l1 = h::t". simpl. rewrite <- IHt. reflexivity. Qed.
   
 
 (** **** Exercise: 3 stars, advanced (bag_proofs) *)
@@ -919,11 +924,13 @@ Proof.
 Theorem remove_decreases_count: forall (s : bag),
   ble_nat (count 0 (remove_one 0 s)) (count 0 s) = true.
 Proof.
-  intros s. induction s as [| h t].
-  Case "[]". reflexivity.
+  intro s. induction s as [| h t].
+  Case "nil". reflexivity.
   Case "h::t".
-Admitted.
-    
+    simpl.
+    destruct h.
+    SCase "h = 0". simpl. rewrite -> ble_n_Sn. reflexivity.
+    SCase "h = S h'". simpl. rewrite <- IHt. reflexivity. Qed.
     
     
 
