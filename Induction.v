@@ -405,27 +405,44 @@ Proof.
     in the proof of this one.)  You may find that [plus_swap] comes in
     handy. *)
 
+Theorem mult_1_plus_r : forall n m : nat,
+  n * (m + 1) = n * m + n.
+Proof.
+  intros.
+  induction n as [| n'].
+  Case "0". reflexivity.
+  Case "n' + 1".
+(*    rewrite <- plus_1_l.*)
+    simpl.
+    rewrite -> IHn'. 
+    assert (H: forall a b c : nat, a + 1 + (b + c) = a + b + S c).
+    SCase "Assertion proof".
+      intros.
+      rewrite <- plus_assoc.
+      rewrite <- plus_comm.
+      rewrite -> plus_swap. 
+      rewrite -> plus_comm.
+      rewrite -> plus_assoc.
+      reflexivity.
+    rewrite -> H. reflexivity. Qed.
+
+
 Theorem mult_comm : forall m n : nat,
  m * n = n * m.
-Proof. Admitted.
-(*  intros m n. induction n as [| n'].
-  Case "n = 0".
-    rewrite -> mult_0_r.
-    reflexivity.
-  Case "n = S n'".
-    rewrite -> mult_1_plus.
-    rewrite <- IHn'.
-    assert (H: forall x y : nat, x * (S y) = x + x * y).
-      SCase "Assertion proof".
-      intros x y.
-      destruct y.
-      SSCase "y = 0". 
-        rewrite -> mult_0_r.
-        rewrite -> plus_0_r.
-        rewrite -> mult_
-      SSCase "y = S y'". rewrite <- mult_1_plus.
-      rewrite <- plus_comm.
-*)
+Proof.
+  intros. 
+  induction n as [| n'].
+  Case "n = 0". rewrite -> mult_0_r. reflexivity.
+  Case "n = S n'". rewrite <- plus_1_l.
+    simpl. rewrite <- IHn'.
+    rewrite <- plus_1_l.
+    rewrite <- plus_comm.
+    rewrite -> mult_1_plus_r.
+    rewrite -> IHn'. 
+    rewrite -> plus_comm. reflexivity. Qed.
+
+
+
 (** **** Exercise: 2 stars, optional (evenb_n__oddb_Sn) *)
 
 (** Prove the following simple fact: *)
