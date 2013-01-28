@@ -167,8 +167,15 @@ Inductive grumble (X:Type) : Type :=
       - [e mumble (b c 0)]
       - [e bool (b c 0)]
       - [c] 
-(* FILL IN HERE *)
-[] *)
+
+Answer:
+      - [d mumble (b a 5)]
+      - [d bool (b a 5)]
+      - [e bool true]
+      - [e mumble (b c 0)]
+      - [c] 
+*)
+
 
 (** **** Exercise: 2 stars (baz_num_elts) *)
 (** Consider the following inductive definition: *)
@@ -177,9 +184,9 @@ Inductive baz : Type :=
    | x : baz -> baz
    | y : baz -> bool -> baz.
 
-(** How _many_ elements does the type [baz] have? 
+(** How _many_ elements does the type [baz] have? *)
 (* FILL IN HERE *)
-[] *)
+(* [None] *)
 
 End MumbleBaz.
 
@@ -354,35 +361,51 @@ Definition list123''' := [1, 2, 3].
     and complete the proofs below. *)
 
 Fixpoint repeat (X : Type) (n : X) (count : nat) : list X :=
-  (* FILL IN HERE *) admit.
+  match count with
+    | O   => []
+    | S c => n :: repeat X n c
+  end.
 
 Example test_repeat1:
   repeat bool true 2 = cons true (cons true nil).
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 
 Theorem nil_app : forall X:Type, forall l:list X,
   app [] l = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. reflexivity. Qed.
 
 Theorem rev_snoc : forall X : Type,
                      forall v : X,
                      forall s : list X,
   rev (snoc s v) = v :: (rev s).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction s as [| h t].
+  Case "s = []". reflexivity.
+  Case "s = h::t".
+    simpl.
+    rewrite -> IHt.
+    reflexivity. Qed.
 
 Theorem rev_involutive : forall X : Type, forall l : list X,
   rev (rev l) = l.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros. induction l as [| h t].
+  Case "s = []". reflexivity.
+  Case "s = h::t".
+    simpl. 
+    rewrite -> rev_snoc.
+    rewrite -> IHt.
+    reflexivity. Qed.
 
 Theorem snoc_with_append : forall X : Type,
                          forall l1 l2 : list X,
                          forall v : X,
   snoc (l1 ++ l2) v = l1 ++ (snoc l2 v).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction l1 as [| h t].
+  Case "s = []". reflexivity.
+  Case "s = h::t". simpl. rewrite -> IHt. reflexivity. Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -462,6 +485,8 @@ Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
       print?   []
 *)
 
+(* TODO *)
+
 (** **** Exercise: 2 stars (split) *)
 (** The function [split] is the right inverse of combine: it takes a
     list of pairs and returns a pair of lists.  In many functional
@@ -470,14 +495,17 @@ Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
     Uncomment the material below and fill in the definition of
     [split].  Make sure it passes the given unit tests. *)
 
-(* 
-Fixpoint split
-  (* FILL IN HERE *)
+
+Fixpoint split {X Y:Type} (l : list (X*Y)) : (list X * list Y) :=
+  match l with
+    | []   => ([], [])
+    | (x,y)::t => match split t with (xs, ys) => (x::xs, y::ys) end
+  end.
 
 Example test_split:
   split [(1,false),(2,false)] = ([1,2],[false,false]).
 Proof. reflexivity.  Qed.
-*)
+
 (** (If you're reading the HTML version of this file, note that
     there's an unresolved typesetting problem in the example: several
     square brackets are missing.  Refer to the .v file for the correct
@@ -521,7 +549,10 @@ Proof. reflexivity.  Qed.
     passes the unit tests below. *)
 
 Definition hd_opt {X : Type} (l : list X)  : option X :=
-  (* FILL IN HERE *) admit.
+  match l with
+    | []   => None
+    | h::t => Some h
+  end.
 
 (** Once again, to force the implicit arguments to be explicit,
     we can use [@] before the name of the function. *)
@@ -529,9 +560,9 @@ Definition hd_opt {X : Type} (l : list X)  : option X :=
 Check @hd_opt.
 
 Example test_hd_opt1 :  hd_opt [1,2] = Some 1.
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 Example test_hd_opt2 :   hd_opt  [[1],[2]]  = Some [1].
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -622,7 +653,7 @@ Definition prod_curry {X Y Z : Type}
 
 Definition prod_uncurry {X Y Z : Type}
   (f : X -> Y -> Z) (p : X * Y) : Z :=
-  (* FILL IN HERE *) admit.
+  match p with (x, y) => f x y end.
 
 (** (Thought exercise: before running these commands, can you
     calculate the types of [prod_curry] and [prod_uncurry]?) *)
@@ -633,13 +664,13 @@ Check @prod_uncurry.
 Theorem uncurry_curry : forall (X Y Z : Type) (f : X -> Y -> Z) x y,
   prod_curry (prod_uncurry f) x y = f x y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* TODO *) Admitted.
 
 Theorem curry_uncurry : forall (X Y Z : Type)
                                (f : (X * Y) -> Z) (p : X * Y),
   prod_uncurry (prod_curry f) p = f p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* FILL IN HERE *) Admitted. (* TODO *)
 (** [] *)
 
 (* ###################################################### *)
@@ -725,15 +756,15 @@ Proof. reflexivity.  Qed.
     7. *)
 
 Definition filter_even_gt7 (l : list nat) : list nat :=
-  (* FILL IN HERE *) admit.
+  filter (fun n => andb (evenb n) (negb (ble_nat n 7))) l.
 
 Example test_filter_even_gt7_1 :
   filter_even_gt7 [1,2,6,9,10,3,12,8] = [10,12,8].
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 
 Example test_filter_even_gt7_2 :
   filter_even_gt7 [5,2,6,19,129] = [].
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (partition) *)
@@ -751,12 +782,12 @@ Example test_filter_even_gt7_2 :
 
 Definition partition {X : Type} (test : X -> bool) (l : list X)
                      : list X * list X :=
-(* FILL IN HERE *) admit.
+  (filter test l, filter (fun x => negb (test x)) l).
 
 Example test_partition1: partition oddb [1,2,3,4,5] = ([1,3,5], [2,4]).
-(* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 Example test_partition2: partition (fun x => false) [5,9,0] = ([], [5,9,0]).
-(* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -803,7 +834,12 @@ Proof. reflexivity.  Qed.
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
   map f (rev l) = rev (map f l).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  induction l as [| h t].
+  Case "l = []". reflexivity. 
+  Case "l = h::t".
+    simpl.
+    rewrite -> rev_snoc. Admitted.
 (** [] *)
 
 (** **** Exercise: 2 stars (flat_map) *)
