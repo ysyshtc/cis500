@@ -863,7 +863,10 @@ Proof.
 
 Fixpoint flat_map {X Y:Type} (f:X -> list Y) (l:list X)
                    : (list Y) :=
-  (* FILL IN HERE *) admit.
+  match l with
+    | []    => []
+    | x::xs => (f x) ++ flat_map f xs
+  end.
 
 Example test_flat_map1:
   flat_map (fun n => [n,n,n]) [1,5,4]
