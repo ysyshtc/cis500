@@ -485,8 +485,6 @@ Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
       print?   []
 *)
 
-(* TODO *)
-
 (** **** Exercise: 2 stars (split) *)
 (** The function [split] is the right inverse of combine: it takes a
     list of pairs and returns a pair of lists.  In many functional
@@ -664,13 +662,18 @@ Check @prod_uncurry.
 Theorem uncurry_curry : forall (X Y Z : Type) (f : X -> Y -> Z) x y,
   prod_curry (prod_uncurry f) x y = f x y.
 Proof.
-  (* TODO *) Admitted.
+  intros.
+  compute.
+  reflexivity. Qed.
 
 Theorem curry_uncurry : forall (X Y Z : Type)
                                (f : (X * Y) -> Z) (p : X * Y),
   prod_uncurry (prod_curry f) p = f p.
 Proof.
-  (* FILL IN HERE *) Admitted. (* TODO *)
+  intros.
+  destruct p.
+  compute. 
+  reflexivity. Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -871,7 +874,7 @@ Fixpoint flat_map {X Y:Type} (f:X -> list Y) (l:list X)
 Example test_flat_map1:
   flat_map (fun n => [n,n,n]) [1,5,4]
   = [1, 1, 1, 5, 5, 5, 4, 4, 4].
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 (** [] *)
 
 (** Lists are not the only inductive type that we can write a
@@ -941,6 +944,9 @@ Proof. reflexivity. Qed.
     situation where it would be useful for [X] and [Y] to be
     different? *)
 
+(* Sure -- if we wanted to, say, count all the elements in a list of lists, then
+   the X would be a list but Y would be a number. *)
+
 (* ###################################################### *)
 (** ** Functions For Constructing Functions *)
 
@@ -998,8 +1004,8 @@ Proof. reflexivity. Qed.
 
 Theorem override_example : forall (b:bool),
   (override (constfun b) 3 true) 2 = b.
-Proof.
-  (* FILL IN HERE *) Admitted.
+Proof. intros. reflexivity. Qed.
+
 (** [] *)
 
 (** We'll use function overriding heavily in parts of the rest of the
@@ -1064,7 +1070,11 @@ Theorem override_neq : forall {X:Type} x1 x2 k1 k2 (f : nat->X),
   beq_nat k2 k1 = false ->
   (override f k2 x2) k1 = x1.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  unfold override.
+  rewrite -> H0.
+  rewrite -> H.
+  reflexivity. Qed.
 (** [] *)
 
 (** As the inverse of [unfold], Coq also provides a tactic
@@ -1088,7 +1098,16 @@ Proof. reflexivity. Qed.
 
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
-(* FILL IN HERE *) Admitted. 
+Proof.
+  intros.
+  induction l as [| h t].
+  Case "l = []". reflexivity.
+  Case "l = h::t".
+    simpl.
+    rewrite <- IHt.
+    unfold fold_length.
+    simpl.
+    reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (fold_map) *)
@@ -1096,25 +1115,43 @@ Theorem fold_length_correct : forall X (l : list X),
     below. *)
 
 Definition fold_map {X Y:Type} (f : X -> Y) (l : list X) : list Y :=
-(* FILL IN HERE *) admit.
+  fold (fun x ys => (f x) :: ys) l [].
 
 (** Write down a theorem in Coq stating that [fold_map] is correct,
     and prove it. *)
-
-(* FILL IN HERE *)
+Theorem fold_map_correct :
+  forall X Y (f:X -> Y) (l:list X),
+    fold_map f l = map f l.
+Proof.
+  intros.
+  induction l as [| h t].
+  Case "l = []". reflexivity.
+  Case "l = h::t".
+    simpl.
+    rewrite <- IHt.
+    unfold fold_map.
+    simpl.
+    reflexivity. Qed.
+    
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced (index_informal) *)
-(** Recall the definition of the [index] function:
+(** Recall the definition of the [index] function: 
    Fixpoint index {X : Type} (n : nat) (l : list X) : option X :=
      match l with
      | [] => None 
      | a :: l' => if beq_nat n O then Some a else index (pred n) l'
      end.
    Write an informal proof of the following theorem:
-   forall X n l, length l = n -> @index X (S n) l = None.
-(* FILL IN HERE *)
-*)
+
+   We can do it inductively on l:
+   In the base case, [l = []] implies [length n = 0] (from previous results), and
+   [index] will immediately return `None`.
+
+   Then, assuming the inductive hypothesis, we see that for [l = h::t],
+   and knowing that [length l = n], [index] will decrease on [n] until l = [h].
+   Since we're using n+1, however, it will decrease again and find the empty
+   list, which returns None. *)
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (church_numerals) *)
@@ -1160,52 +1197,53 @@ Definition three : nat := @doit3times.
 (** Successor of a natural number *)
 
 Definition succ (n : nat) : nat :=
-  (* FILL IN HERE *) admit.
+  fun (X:Type) (f:X -> X) (x:X) => f (n X f x).
 
 Example succ_1 : succ zero = one.
-Proof. (* FILL IN HERE *) Admitted.
-
+Proof. reflexivity. Qed.
+ 
 Example succ_2 : succ one = two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example succ_3 : succ two = three.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 (** Addition of two natural numbers *)
 
 Definition plus (n m : nat) : nat :=
-  (* FILL IN HERE *) admit.
+  fun (X:Type) (f:X -> X) (x:X) => n X f (m X f x).
 
 Example plus_1 : plus zero one = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example plus_2 : plus two three = plus three two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example plus_3 :
   plus (plus two two) three = plus one (plus three three).
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 (** Multiplication *)
 
 Definition mult (n m : nat) : nat := 
-  (* FILL IN HERE *) admit.
+  fun (X:Type) (f:X -> X) (x:X) => n X (m X f) x.
 
 Example mult_1 : mult one one = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example mult_2 : mult zero (plus three three) = zero.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example mult_3 : mult two three = plus three three.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 (** Exponentiation *)
 
 (** Hint: polymorphism plays a crucial role here. *)
 
 Definition exp (n m : nat) : nat :=
-  (* FILL IN HERE *) admit.
+  admit.
+(*  fun (X:Type) (f:X -> X) (x:X) => (m nat (mult n) n) X f x.*)
 
 Example exp_1 : exp two two = plus two two.
 Proof. (* FILL IN HERE *) Admitted.
