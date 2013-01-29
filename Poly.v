@@ -839,7 +839,16 @@ Proof.
   Case "l = []". reflexivity. 
   Case "l = h::t".
     simpl.
-    rewrite -> rev_snoc. Admitted.
+    rewrite <- IHt. 
+    assert (H: forall (g:X -> Y) (x:X) (xs:list X),
+                 map g (snoc xs x) = snoc (map g xs) (g x)).
+    SCase "Assertion proof".
+      intros.
+      induction xs as [| h' t'].
+      SSCase "xs = []". reflexivity.
+      SSCase "xs = h::t". simpl. rewrite <- IHt'. reflexivity.
+    rewrite <- H.
+    reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars (flat_map) *)
