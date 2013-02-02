@@ -605,15 +605,8 @@ _Proof_: Let [m] be a [nat]. We prove by induction on [m] that, for
     to show. [] *)
 
 (** **** Exercise: 3 stars (gen_dep_practice) *)
-(** Carry out this proof by induction on [m]. *)
 
-Theorem plus_n_n_injective_take2 : forall n m,
-     n + n = m + m ->
-     n = m.
-Proof.
-  (* FILL IN HERE *) Admitted.
-
-(** Now prove this by induction on [l]. *)
+(** Prove this by induction on [l]. *)
 
 Theorem index_after_last: forall (n : nat) (X : Type) (l : list X),
      length l = n ->
@@ -645,7 +638,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars (app_length_cons) *)
+(** **** Exercise: 3 stars, optional (app_length_cons) *)
 (** Prove this by induction on [l1], without using [app_length]. *)
 
 Theorem app_length_cons : forall (X : Type) (l1 l2 : list X) 
@@ -703,7 +696,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars (combine_split) *)
+(** **** Exercise: 3 stars, optional (combine_split) *)
 (** Remove the comment brackets (needed because [split] was defined in 
     a previous exercise) and complete the proof. *)
 
@@ -873,24 +866,28 @@ Proof.
     figure out which instantiation we're giving. We could
     instead write: apply trans_eq with [c,d]. *)
 
-(** **** Exercise: 3 stars (apply_exercises) *)
+(** **** Exercise: 3 stars (apply_with_exercise3) *)
+Theorem override_permute : forall {X:Type} x1 x2 k1 k2 k3 (f : nat->X),
+  false = beq_nat k2 k1 ->
+  (override (override f k2 x2) k1 x1) k3 = (override (override f k1 x1) k2 x2) k3.
+Proof.
+  (* FILL IN HERE *) Admitted.
+(** [] *)
+
+(** **** Exercise: 3 stars, optional (apply_with_exercise1) *)
 Example trans_eq_exercise : forall (n m o p : nat),
      m = (minustwo o) ->
      (n + p) = m ->
      (n + p) = (minustwo o). 
 Proof.
   (* FILL IN HERE *) Admitted.
+(** [] *)
 
+(** **** Exercise: 3 stars, optional (apply_with_exercise2) *)
 Theorem beq_nat_trans : forall n m p,
   true = beq_nat n m ->
   true = beq_nat m p ->
   true = beq_nat n p.
-Proof.
-  (* FILL IN HERE *) Admitted.
-
-Theorem override_permute : forall {X:Type} x1 x2 k1 k2 k3 (f : nat->X),
-  false = beq_nat k2 k1 ->
-  (override (override f k2 x2) k1 x1) k3 = (override (override f k1 x1) k2 x2) k3.
 Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
@@ -1031,7 +1028,7 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(* $Date: 2013-01-30 09:21:23 -0500 (Wed, 30 Jan 2013) $ *)
+(* $Date: 2013-01-30 18:38:07 -0500 (Wed, 30 Jan 2013) $ *)
 
 
 
