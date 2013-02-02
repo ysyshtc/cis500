@@ -1,6 +1,7 @@
 (** * Prop: Propositions and Evidence *)
 
 Require Export MoreCoq.
+
 (** In previous chapters, we have seen many examples of factual
     claims (_propositions_) and ways of presenting evidence of their
     truth (_proofs_).  In particular, we have worked extensively with
@@ -450,7 +451,7 @@ Proof.
    (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars (gorgeous_plus13_po):
+(** **** Exercise: 2 stars, optional (gorgeous_plus13_po):
 Give the proof object for theorem [gorgeous_plus13] above. *)
 
 Definition gorgeous_plus13_po: forall n, gorgeous n -> gorgeous (13+n):=
@@ -748,423 +749,57 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(* ##################################################### *)
-(* ##################################################### *)
-(** * Programming with Propositions *)
+(* ####################################################### *)
+(** ** Building Proof Objects Incrementally (Optional) *)
 
-(** A _proposition_ is a statement expressing a factual claim,
-    like "two plus two equals four."  In Coq, propositions are written
-    as expressions of type [Prop].  Although we haven't mentioned it
-    explicitly, we have already seen numerous examples. *)
+(** As you probably noticed while solving the exercises earlier in the
+    chapter, constructing proof objects is more involved than
+    constructing the corresponding tactic proofs. Fortunately, there
+    is a bit of syntactic sugar that we've already introduced to help
+    in the construction: the [admit] term, which we've sometimes used
+    to force Coq into accepting incomplete exercies. As an example,
+    let's walk through the process of constructing a proof object
+    demonstrating the beauty of [16]. *)
 
-Check (2 + 2 = 4).
-(* ===> 2 + 2 = 4 : Prop *)
+Definition b_16_atmpt_1 : beautiful 16 := admit.
 
-Check (ble_nat 3 2 = false).
-(* ===> ble_nat 3 2 = false : Prop *)
+(** Maybe we can use [b_sum] to construct a term of type [beautiful 16]?
+    Recall that [b_sum] is of type
 
-Check (beautiful 8).
-(* ===> beautiful 8 : Prop *)
+    forall n m : nat, beautiful n -> beautiful m -> beautiful (n + m)
 
-(** Both provable and unprovable claims are perfectly good
-    propositions.  Simply _being_ a proposition is one thing; being
-    _provable_ is something else! *)
+    If we can demonstrate the beauty of [5] and [11], we should
+    be done. *)
 
-Check (2 + 2 = 5).
-(* ===> 2 + 2 = 5 : Prop *)
+Definition b_16_atmpt_2 : beautiful 16 := b_sum 5 11 admit admit.
 
-Check (beautiful 4).
-(* ===> beautiful 4 : Prop *)
+(** In the attempt above, we've omitted the proofs of the propositions
+    that [5] and [11] are beautiful. But the first of these is already
+    axiomatized in [b_5]: *)
 
-(** Both [2 + 2 = 4] and [2 + 2 = 5] are legal expressions
-    of type [Prop]. *)
+Definition b_16_atmpt_3 : beautiful 16 := b_sum 5 11 b_5 admit.
 
-(** We've seen one way that propositions can be used in Coq: in
-    [Theorem] (and [Lemma] and [Example]) declarations. *)
+(** What remains is to show that [11] is beautiful. We repeat the
+    procedure: *)
 
-Theorem plus_2_2_is_4 : 
-  2 + 2 = 4.
-Proof. reflexivity.  Qed.
+Definition b_16_atmpt_4 : beautiful 16 :=
+  b_sum 5 11 b_5 (b_sum 5 6 admit admit).
 
-(** But they can be used in many other ways.  For example, we
-    can give a name to a proposition using a [Definition], just as we
-    have given names to expressions of other sorts (numbers,
-    functions, types, type functions, ...). *)
+Definition b_16_atmpt_5 : beautiful 16 :=
+  b_sum 5 11 b_5 (b_sum 5 6 b_5 admit).
 
-Definition plus_fact : Prop  :=  2 + 2 = 4.
-Check plus_fact.
-(* ===> plus_fact : Prop *)
+Definition b_16_atmpt_6 : beautiful 16 :=
+  b_sum 5 11 b_5 (b_sum 5 6 b_5 (b_sum 3 3 admit admit)).
 
-(** Now we can use this name in any situation where a proposition is
-    expected -- for example, as the claim in a [Theorem]
-    declaration. *)
+(** And finally, we can complete the proof object: *)
 
-Theorem plus_fact_is_true : 
-  plus_fact.
-Proof. reflexivity.  Qed.
+Definition b_16 : beautiful 16 :=
+  b_sum 5 11 b_5 (b_sum 5 6 b_5 (b_sum 3 3 b_3 b_3)).
 
-(** There are many ways of constructing propositions.  We can define a
-    new proposition primitively using [Inductive], we can form an
-    equality proposition from two computational expressions, and we
-    can build up a new proposition from existing ones using
-    implication and quantification. *)
-
-Definition strange_prop1 : Prop :=
-  (2 + 2 = 5) -> (99 + 26 = 42).
-
-(** Also, given a proposition [P] with a free variable [n], we can
-    form the proposition [forall n, P]. *)
-
-Definition strange_prop2 :=
-  forall n, (ble_nat n 17 = true) -> (ble_nat n 99 = true).
-
-(** We can also define _parameterized propositions_, such as
-    the property of being even. *)
-
-Check even. 
-(* ===> even : nat -> Prop *)
-Check (even 4).
-(* ===> even 4 : Prop *)
-Check (even 3).
-(* ===> even 3 : Prop *)
-
-(** The type of [even], [nat->Prop], can be pronounced in three
-    equivalent ways: (1) "[even] is a _function_ from numbers to
-    propositions," (2) "[even] is a _family_ of propositions, indexed
-    by a number [n]," or (3) "[even] is a _property_ of numbers."  *)
-
-(** Propositions -- including parameterized propositions -- are
-    first-class citizens in Coq.  For example, we can define them to
-    take multiple arguments... *)
-
-Definition between (n m o: nat) : Prop :=
-  andb (ble_nat n o) (ble_nat o m) = true.
-
-(** ... and then partially apply them: *)
-
-Definition teen : nat->Prop := between 13 19.
-
-(** We can even pass propositions -- including parameterized
-    propositions -- as arguments to functions: *)
-
-Definition true_for_zero (P:nat->Prop) : Prop :=
-  P 0.
-
-(** Here are two more examples of passing parameterized propositions
-    as arguments to a function.  The first takes a proposition [P] as
-    argument and builds the proposition that [P] is true for all
-    natural numbers.  The second takes [P] and builds the proposition
-    that, if [P] is true for some natural number [n'], then it is also
-    true by the successor of [n'] -- i.e. that [P] is _preserved by
-    successor_: *)
-
-Definition true_for_all_numbers (P:nat->Prop) : Prop :=
-  forall n, P n.
-
-Definition preserved_by_S (P:nat->Prop) : Prop :=
-  forall n', P n' -> P (S n').
-
-(* ##################################################### *)
-(** * Induction Principles *)
-
-(** This is a good point to pause and take a deeper look at induction
-    principles in general. *)
-
-(* ##################################################### *)
-(** ** Induction Principles for Inductively Defined Types *)
-
-(** Every time we declare a new [Inductive] datatype, Coq
-    automatically generates an axiom that embodies an _induction
-    principle_ for this type.
-
-    The induction principle for a type [t] is called [t_ind].  Here is
-    the one for natural numbers: *)
-
-Check nat_ind.
-(*  ===> nat_ind : 
-           forall P : nat -> Prop,
-              P 0  ->
-              (forall n : nat, P n -> P (S n))  ->
-              forall n : nat, P n  *)
-
-(** The [induction] tactic is a straightforward wrapper that, at
-    its core, simply performs [apply t_ind].  To see this more
-    clearly, let's experiment a little with using [apply nat_ind]
-    directly, instead of the [induction] tactic, to carry out some
-    proofs.  Here, for example, is an alternate proof of a theorem
-    that we saw in the [Basics] chapter. *)
-
-Theorem mult_0_r' : forall n:nat, 
-  n * 0 = 0.
-Proof.
-  apply nat_ind. 
-  Case "O". reflexivity.
-  Case "S". simpl. intros n IHn. rewrite -> IHn. 
-    reflexivity.  Qed.
-
-(** This proof is basically the same as the earlier one, but a
-    few minor differences are worth noting.  First, in the induction
-    step of the proof (the ["S"] case), we have to do a little
-    bookkeeping manually (the [intros]) that [induction] does
-    automatically.
-
-    Second, we do not introduce [n] into the context before applying
-    [nat_ind] -- the conclusion of [nat_ind] is a quantified formula,
-    and [apply] needs this conclusion to exactly match the shape of
-    the goal state, including the quantifier.  The [induction] tactic
-    works either with a variable in the context or a quantified
-    variable in the goal.
-
-    Third, the [apply] tactic automatically chooses variable names for
-    us (in the second subgoal, here), whereas [induction] lets us
-    specify (with the [as...]  clause) what names should be used.  The
-    automatic choice is actually a little unfortunate, since it
-    re-uses the name [n] for a variable that is different from the [n]
-    in the original theorem.  This is why the [Case] annotation is
-    just [S] -- if we tried to write it out in the more explicit form
-    that we've been using for most proofs, we'd have to write [n = S
-    n], which doesn't make a lot of sense!  All of these conveniences
-    make [induction] nicer to use in practice than applying induction
-    principles like [nat_ind] directly.  But it is important to
-    realize that, modulo this little bit of bookkeeping, applying
-    [nat_ind] is what we are really doing. *)
-
-(** **** Exercise: 2 stars, optional (plus_one_r') *)
-(** Complete this proof as we did [mult_0_r'] above, without using
-    the [induction] tactic. *)
-
-Theorem plus_one_r' : forall n:nat, 
-  n + 1 = S n.
-Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
-
-(** The induction principles that Coq generates for other datatypes
-    defined with [Inductive] follow a similar pattern. If we define a
-    type [t] with constructors [c1] ... [cn], Coq generates a theorem
-    with this shape:
-    t_ind :
-       forall P : t -> Prop,
-            ... case for c1 ... ->
-            ... case for c2 ... ->
-            ...                 ->
-            ... case for cn ... ->
-            forall n : t, P n
-    The specific shape of each case depends on the arguments to the
-    corresponding constructor.  Before trying to write down a general
-    rule, let's look at some more examples. First, an example where
-    the constructors take no arguments: *)
-
-Inductive yesno : Type :=
-  | yes : yesno
-  | no : yesno.
-
-Check yesno_ind. 
-(* ===> yesno_ind : forall P : yesno -> Prop, 
-                      P yes  ->
-                      P no  ->
-                      forall y : yesno, P y *)
-
-(** **** Exercise: 1 star (rgb) *)
-(** Write out the induction principle that Coq will generate for
-    the following datatype.  Write down your answer on paper, and
-    then compare it with what Coq prints. *)
-
-Inductive rgb : Type :=
-  | red : rgb
-  | green : rgb
-  | blue : rgb.
-Check rgb_ind.
-(** [] *)
-
-(** Here's another example, this time with one of the constructors
-    taking some arguments. *)
-
-Inductive natlist : Type :=
-  | nnil : natlist
-  | ncons : nat -> natlist -> natlist.
-
-Check natlist_ind.
-(* ===> (modulo a little tidying)
-   natlist_ind :
-      forall P : natlist -> Prop,
-         P nnil  ->
-         (forall (n : nat) (l : natlist), P l -> P (ncons n l)) ->
-         forall n : natlist, P n *)
-
-(** **** Exercise: 1 star (natlist1) *)
-(** Suppose we had written the above definition a little
-   differently: *)
-
-Inductive natlist1 : Type :=
-  | nnil1 : natlist1
-  | nsnoc1 : natlist1 -> nat -> natlist1.
-
-(** Now what will the induction principle look like? *)
-(** [] *)
-
-(** From these examples, we can extract this general rule:
-
-    - The type declaration gives several constructors; each
-      corresponds to one clause of the induction principle.
-    - Each constructor [c] takes argument types [a1]...[an].
-    - Each [ai] can be either [t] (the datatype we are defining) or
-      some other type [s].
-    - The corresponding case of the induction principle
-      says (in English):
-        - "for all values [x1]...[xn] of types [a1]...[an], if
-           [P] holds for each of the [x]s of type [t], then [P]
-           holds for [c x1 ... xn]". *)
-
-(** **** Exercise: 1 star (ex_set) *)
-(** Here is an induction principle for an inductively defined
-    set.
-      ExSet_ind :
-         forall P : ExSet -> Prop,
-             (forall b : bool, P (con1 b)) ->
-             (forall (n : nat) (e : ExSet), P e -> P (con2 n e)) ->
-             forall e : ExSet, P e
-    Give an [Inductive] definition of [ExSet]: *)
-
-Inductive ExSet : Type :=
-  (* FILL IN HERE *)
-.
-(** [] *)
-
-(** What about polymorphic datatypes?
-
-    The inductive definition of polymorphic lists
-      Inductive list (X:Type) : Type :=
-        | nil : list X
-        | cons : X -> list X -> list X.
-    is very similar to that of [natlist].  The main difference is
-    that, here, the whole definition is _parameterized_ on a set [X]:
-    that is, we are defining a _family_ of inductive types [list X],
-    one for each [X].  (Note that, wherever [list] appears in the body
-    of the declaration, it is always applied to the parameter [X].)
-    The induction principle is likewise parameterized on [X]:
-     list_ind :
-       forall (X : Type) (P : list X -> Prop),
-          P [] ->
-          (forall (x : X) (l : list X), P l -> P (x :: l)) ->
-          forall l : list X, P l
-   Note the wording here (and, accordingly, the form of [list_ind]):
-   The _whole_ induction principle is parameterized on [X].  That is,
-   [list_ind] can be thought of as a polymorphic function that, when
-   applied to a type [X], gives us back an induction principle
-   specialized to the type [list X]. *)
-
-(** **** Exercise: 1 star (tree) *)
-(** Write out the induction principle that Coq will generate for
-   the following datatype.  Compare your answer with what Coq
-   prints. *)
-
-Inductive tree (X:Type) : Type :=
-  | leaf : X -> tree X
-  | node : tree X -> tree X -> tree X.
-Check tree_ind.
-(** [] *)
-
-(** **** Exercise: 1 star (mytype) *)
-(** Find an inductive definition that gives rise to the
-    following induction principle:
-      mytype_ind :
-        forall (X : Type) (P : mytype X -> Prop),
-            (forall x : X, P (constr1 X x)) ->
-            (forall n : nat, P (constr2 X n)) ->
-            (forall m : mytype X, P m -> 
-               forall n : nat, P (constr3 X m n)) ->
-            forall m : mytype X, P m                   
-*) 
-(** [] *)
-
-(** **** Exercise: 1 star, optional (foo) *)
-(** Find an inductive definition that gives rise to the
-    following induction principle:
-      foo_ind :
-        forall (X Y : Type) (P : foo X Y -> Prop),
-             (forall x : X, P (bar X Y x)) ->
-             (forall y : Y, P (baz X Y y)) ->
-             (forall f1 : nat -> foo X Y,
-               (forall n : nat, P (f1 n)) -> P (quux X Y f1)) ->
-             forall f2 : foo X Y, P f2       
-*) 
-(** [] *)
-
-(** **** Exercise: 1 star, optional (foo') *)
-(** Consider the following inductive definition: *)
-
-Inductive foo' (X:Type) : Type :=
-  | C1 : list X -> foo' X -> foo' X
-  | C2 : foo' X.
-
-(** What induction principle will Coq generate for [foo']?  Fill
-   in the blanks, then check your answer with Coq.)
-     foo'_ind :
-        forall (X : Type) (P : foo' X -> Prop),
-              (forall (l : list X) (f : foo' X),
-                    _______________________ -> 
-                    _______________________   ) ->
-             ___________________________________________ ->
-             forall f : foo' X, ________________________
-*)
-
-(** [] *)
-
-(* ##################################################### *)
-(** ** Induction Hypotheses *)
-
-(** Where does the phrase "induction hypothesis" fit into this story?
-
-    The induction principle for numbers
-       forall P : nat -> Prop,
-            P 0  ->
-            (forall n : nat, P n -> P (S n))  ->
-            forall n : nat, P n
-   is a generic statement that holds for all propositions
-   [P] (strictly speaking, for all families of propositions [P]
-   indexed by a number [n]).  Each time we use this principle, we
-   are choosing [P] to be a particular expression of type
-   [nat->Prop].
-
-   We can make the proof more explicit by giving this expression a
-   name.  For example, instead of stating the theorem [mult_0_r] as
-   "[forall n, n * 0 = 0]," we can write it as "[forall n, P_m0r
-   n]", where [P_m0r] is defined as... *)
-
-Definition P_m0r (n:nat) : Prop := 
-  n * 0 = 0.
-
-(** ... or equivalently... *)
-
-Definition P_m0r' : nat->Prop := 
-  fun n => n * 0 = 0.
-
-(** Now when we do the proof it is easier to see where [P_m0r]
-    appears. *)
-
-Theorem mult_0_r'' : forall n:nat, 
-  P_m0r n.
-Proof.
-  apply nat_ind.
-  Case "n = O". reflexivity.
-  Case "n = S n'". 
-    (* Note the proof state at this point! *)
-    unfold P_m0r. simpl. intros n' IHn'. 
-    apply IHn'.  Qed.
-
-(** This extra naming step isn't something that we'll do in
-    normal proofs, but it is useful to do it explicitly for an example
-    or two, because it allows us to see exactly what the induction
-    hypothesis is.  If we prove [forall n, P_m0r n] by induction on
-    [n] (using either [induction] or [apply nat_ind]), we see that the
-    first subgoal requires us to prove [P_m0r 0] ("[P] holds for
-    zero"), while the second subgoal requires us to prove [forall n',
-    P_m0r n' -> P_m0r n' (S n')] (that is "[P] holds of [S n'] if it
-    holds of [n']" or, more elegantly, "[P] is preserved by [S]").
-    The _induction hypothesis_ is the premise of this latter
-    implication -- the assumption that [P] holds of [n'], which we are
-    allowed to use in proving that [P] holds for [S n']. *)
+(** To recap, we've been guided by an informal proof that we have in
+    our minds, and we check the high level details before completing
+    the intricacies of the proof. The [admit] term allows us to do
+    this. *)
 
 (* ####################################################### *)
 (** * Additional Exercises *)
@@ -1233,64 +868,6 @@ Proof.
 (* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 2 stars, optional (foo_ind_principle) *)
-(** Suppose we make the following inductive definition:
-   Inductive foo (X : Set) (Y : Set) : Set :=
-     | foo1 : X -> foo X Y
-     | foo2 : Y -> foo X Y
-     | foo3 : foo X Y -> foo X Y.
-   Fill in the blanks to complete the induction principle that will be
-   generated by Coq. 
-   foo_ind
-        : forall (X Y : Set) (P : foo X Y -> Prop),   
-          (forall x : X, __________________________________) ->
-          (forall y : Y, __________________________________) ->
-          (________________________________________________) ->
-           ________________________________________________
-
-*)
-(** [] *)
-
-(** **** Exercise: 2 stars, optional (bar_ind_principle) *)
-(** Consider the following induction principle:
-   bar_ind
-        : forall P : bar -> Prop,
-          (forall n : nat, P (bar1 n)) ->
-          (forall b : bar, P b -> P (bar2 b)) ->
-          (forall (b : bool) (b0 : bar), P b0 -> P (bar3 b b0)) ->
-          forall b : bar, P b
-   Write out the corresponding inductive set definition.
-   Inductive bar : Set :=
-     | bar1 : ________________________________________
-     | bar2 : ________________________________________
-     | bar3 : ________________________________________.
-
-*)
-(** [] *)
-
-(** **** Exercise: 2 stars, optional (no_longer_than_ind) *)
-(** Given the following inductively defined proposition:
-  Inductive no_longer_than (X : Set) : (list X) -> nat -> Prop :=
-    | nlt_nil  : forall n, no_longer_than X [] n
-    | nlt_cons : forall x l n, no_longer_than X l n -> 
-                               no_longer_than X (x::l) (S n)
-    | nlt_succ : forall l n, no_longer_than X l n -> 
-                             no_longer_than X l (S n).
-  write the induction principle generated by Coq.
-  no_longer_than_ind
-       : forall (X : Set) (P : list X -> nat -> Prop),
-         (forall n : nat, ____________________) ->
-         (forall (x : X) (l : list X) (n : nat),
-          no_longer_than X l n -> ____________________ -> 
-                                  _____________________________ ->
-         (forall (l : list X) (n : nat),
-          no_longer_than X l n -> ____________________ -> 
-                                  _____________________________ ->
-         forall (l : list X) (n : nat), no_longer_than X l n -> 
-           ____________________
-
-*)
-(** [] *)
 
 (** **** Exercise: 2 stars, optional (R_provability) *)
 (** Suppose we give Coq the following definition:
@@ -1309,325 +886,11 @@ Proof.
 
 
 (* ##################################################### *)
-(** * Optional Material *)
-
-(** This section offers some additional details on how induction works
-    in Coq and the process of building proof trees.  It can safely be
-    skimmed on a first reading.  (We recommend skimming rather than
-    skipping over it outright: it answers some questions that occur to
-    many Coq users at some point, so it is useful to have a rough idea
-    of what's here.) *)
-
-(* ##################################################### *)
-(** ** Induction Principles in [Prop] *)
-
-(** Earlier, we looked in detail at the induction principles that Coq
-    generates for inductively defined _sets_.  The induction
-    principles for inductively defined _propositions_ like [gorgeous]
-    are a tiny bit more complicated.  As with all induction
-    principles, we want to use the induction principle on [gorgeous]
-    to prove things by inductively considering the possible shapes
-    that something in [gorgeous] can have -- either it is evidence
-    that [0] is gorgeous, or it is evidence that, for some [n], [3+n]
-    is gorgeous, or it is evidence that, for some [n], [5+n] is
-    gorgeous and it includes evidence that [n] itself is.  Intuitively
-    speaking, however, what we want to prove are not statements about
-    _evidence_ but statements about _numbers_.  So we want an
-    induction principle that lets us prove properties of numbers by
-    induction on evidence.
-
-    For example, from what we've said so far, you might expect the
-    inductive definition of [gorgeous]...
-    Inductive gorgeous : nat -> Prop :=
-         g_0 : gorgeous 0
-       | g_plus3 : forall n, gorgeous n -> gorgeous (3+m)
-       | g_plus5 : forall n, gorgeous n -> gorgeous (5+m).
-    ...to give rise to an induction principle that looks like this...
-    gorgeous_ind_max :
-       forall P : (forall n : nat, gorgeous n -> Prop),
-            P O g_0 ->
-            (forall (m : nat) (e : gorgeous m), 
-               P m e -> P (3+m) (g_plus3 m e) ->
-            (forall (m : nat) (e : gorgeous m), 
-               P m e -> P (5+m) (g_plus5 m e) ->
-            forall (n : nat) (e : gorgeous n), P n e
-    ... because:
-
-     - Since [gorgeous] is indexed by a number [n] (every [gorgeous]
-       object [e] is a piece of evidence that some particular number
-       [n] is gorgeous), the proposition [P] is parameterized by both
-       [n] and [e] -- that is, the induction principle can be used to
-       prove assertions involving both a gorgeous number and the
-       evidence that it is gorgeous.
-
-     - Since there are three ways of giving evidence of gorgeousness
-       ([gorgeous] has three constructors), applying the induction
-       principle generates three subgoals:
-
-         - We must prove that [P] holds for [O] and [b_0].
-
-         - We must prove that, whenever [n] is a gorgeous
-           number and [e] is an evidence of its gorgeousness,
-           if [P] holds of [n] and [e],
-           then it also holds of [3+m] and [g_plus3 n e].
-
-         - We must prove that, whenever [n] is a gorgeous
-           number and [e] is an evidence of its gorgeousness,
-           if [P] holds of [n] and [e],
-           then it also holds of [5+m] and [g_plus5 n e].
-
-     - If these subgoals can be proved, then the induction principle
-       tells us that [P] is true for _all_ gorgeous numbers [n] and
-       evidence [e] of their gorgeousness.
-
-    But this is a little more flexibility than we actually need or
-    want: it is giving us a way to prove logical assertions where the
-    assertion involves properties of some piece of _evidence_ of
-    gorgeousness, while all we really care about is proving
-    properties of _numbers_ that are gorgeous -- we are interested in
-    assertions about numbers, not about evidence.  It would therefore
-    be more convenient to have an induction principle for proving
-    propositions [P] that are parameterized just by [n] and whose
-    conclusion establishes [P] for all gorgeous numbers [n]:
-       forall P : nat -> Prop,
-          ... ->
-             forall n : nat, gorgeous n -> P n
-    For this reason, Coq actually generates the following simplified
-    induction principle for [gorgeous]: *)
-
-Check gorgeous_ind.
-(* ===>  gorgeous_ind
-     : forall P : nat -> Prop,
-       P 0 ->
-       (forall n : nat, gorgeous n -> P n -> P (3 + n)) ->
-       (forall n : nat, gorgeous n -> P n -> P (5 + n)) ->
-       forall n : nat, gorgeous n -> P n *)
-
-(** In particular, Coq has dropped the evidence term [e] as a
-    parameter of the the proposition [P], and consequently has
-    rewritten the assumption [forall (n : nat) (e: gorgeous n), ...]
-    to be [forall (n : nat), gorgeous n -> ...]; i.e., we no longer
-    require explicit evidence of the provability of [gorgeous n]. *)
-
-(** In English, [gorgeous_ind] says:
-
-    - Suppose, [P] is a property of natural numbers (that is, [P n] is
-      a [Prop] for every [n]).  To show that [P n] holds whenever [n]
-      is gorgeous, it suffices to show:
-  
-      - [P] holds for [0],
-  
-      - for any [n], if [n] is gorgeous and [P] holds for
-        [n], then [P] holds for [3+n],
-
-      - for any [n], if [n] is gorgeous and [P] holds for
-        [n], then [P] holds for [5+n]. *)
-
-(** We can apply [gorgeous_ind] directly instead of using [induction]. *)
-
-Theorem gorgeous__beautiful' : forall n, gorgeous n -> beautiful n.
-Proof.
-   intros.
-   apply gorgeous_ind.
-   Case "g_0".
-       apply b_0.
-   Case "g_plus3".
-       intros.
-       apply b_sum. apply b_3.
-       apply H1.
-   Case "g_plus5".
-       intros.
-       apply b_sum. apply b_5.
-       apply H1.
-   apply H.
-Qed.
-
-Module P.
-
-(** **** Exercise: 3 stars, optional (p_provability) *)
-(** Consider the following inductively defined proposition: *)
-
-Inductive p : (tree nat) -> nat -> Prop :=
-   | c1 : forall n, p (leaf _ n) 1
-   | c2 : forall t1 t2 n1 n2,
-            p t1 n1 -> p t2 n2 -> p (node _ t1 t2) (n1 + n2)
-   | c3 : forall t n, p t n -> p t (S n).
-
-(** Describe, in English, the conditions under which the
-   proposition [p t n] is provable. 
-
-   (* FILL IN HERE *)
-*)
-(** [] *)
-
-End P.
-
-(* ##################################################### *)
-(** ** More on the [induction] Tactic *)
-
-(** The [induction] tactic actually does even more low-level
-    bookkeeping for us than we discussed above.
-
-    Recall the informal statement of the induction principle for
-    natural numbers:
-      - If [P n] is some proposition involving a natural number n, and
-        we want to show that P holds for _all_ numbers n, we can
-        reason like this:
-          - show that [P O] holds
-          - show that, if [P n'] holds, then so does [P (S n')]
-          - conclude that [P n] holds for all n.
-    So, when we begin a proof with [intros n] and then [induction n],
-    we are first telling Coq to consider a _particular_ [n] (by
-    introducing it into the context) and then telling it to prove
-    something about _all_ numbers (by using induction).
-
-    What Coq actually does in this situation, internally, is to
-    "re-generalize" the variable we perform induction on.  For
-    example, in the proof above that [plus] is associative...
-*)
-
-Theorem plus_assoc' : forall n m p : nat, 
-  n + (m + p) = (n + m) + p.   
-Proof.
-  (* ...we first introduce all 3 variables into the context,
-     which amounts to saying "Consider an arbitrary [n], [m], and
-     [p]..." *)
-  intros n m p. 
-  (* ...We now use the [induction] tactic to prove [P n] (that
-     is, [n + (m + p) = (n + m) + p]) for _all_ [n],
-     and hence also for the particular [n] that is in the context
-     at the moment. *)
-  induction n as [| n'].
-  Case "n = O". reflexivity.
-  Case "n = S n'". 
-    (* In the second subgoal generated by [induction] -- the
-       "inductive step" -- we must prove that [P n'] implies 
-       [P (S n')] for all [n'].  The [induction] tactic 
-       automatically introduces [n'] and [P n'] into the context
-       for us, leaving just [P (S n')] as the goal. *)
-    simpl. rewrite -> IHn'. reflexivity.  Qed.
-
-(** It also works to apply [induction] to a variable that is
-   quantified in the goal. *)
-
-Theorem plus_comm' : forall n m : nat, 
-  n + m = m + n.
-Proof.
-  induction n as [| n']. 
-  Case "n = O". intros m. rewrite -> plus_0_r. reflexivity.
-  Case "n = S n'". intros m. simpl. rewrite -> IHn'. 
-    rewrite <- plus_n_Sm. reflexivity.  Qed.
-
-(** Note that [induction n] leaves [m] still bound in the goal --
-    i.e., what we are proving inductively is a statement beginning
-    with [forall m].
-
-    If we do [induction] on a variable that is quantified in the goal
-    _after_ some other quantifiers, the [induction] tactic will
-    automatically introduce the variables bound by these quantifiers
-    into the context. *)
-
-Theorem plus_comm'' : forall n m : nat, 
-  n + m = m + n.
-Proof.
-  (* Let's do induction on [m] this time, instead of [n]... *)
-  induction m as [| m']. 
-  Case "m = O". simpl. rewrite -> plus_0_r. reflexivity.
-  Case "m = S m'". simpl. rewrite <- IHm'.
-    rewrite <- plus_n_Sm. reflexivity.  Qed.
-
-(** **** Exercise: 1 star, optional (plus_explicit_prop) *)
-(** Rewrite both [plus_assoc'] and [plus_comm'] and their proofs in
-    the same style as [mult_0_r''] above -- that is, for each theorem,
-    give an explicit [Definition] of the proposition being proved by
-    induction, and state the theorem and proof in terms of this
-    defined proposition.  *)
-
-(* FILL IN HERE *)
-(** [] *)
-
-(* ##################################################### *)
-(** One more quick digression, for adventurous souls: if we can define 
-    parameterized propositions using [Definition], then can we also
-    define them using [Fixpoint]?  Of course we can!  However, this
-    kind of "recursive parameterization" doesn't correspond to
-    anything very familiar from everyday mathematics.  The following
-    exercise gives a slightly contrived example. *)
-
-(** **** Exercise: 4 stars, optional (true_upto_n__true_everywhere) *)
-(** Define a recursive function
-    [true_upto_n__true_everywhere] that makes
-    [true_upto_n_example] work. *)
-
-(* 
-Fixpoint true_upto_n__true_everywhere 
-(* FILL IN HERE *)
-
-Example true_upto_n_example :
-    (true_upto_n__true_everywhere 3 (fun n => even n))
-  = (even 3 -> even 2 -> even 1 -> forall m : nat, even m).
-Proof. reflexivity.  Qed.
-*)
-(** [] *)
-
-(* ####################################################### *)
-(** ** Building Proof Objects Incrementally *)
-
-(** As you probably noticed while solving the exercises earlier in the
-    chapter, constructing proof objects is more involved than
-    constructing the corresponding tactic proofs. Fortunately, there
-    is a bit of syntactic sugar that we've already introduced to help
-    in the construction: the [admit] term, which we've sometimes used
-    to force Coq into accepting incomplete exercies. As an example,
-    let's walk through the process of constructing a proof object
-    demonstrating the beauty of [16]. *)
-
-Definition b_16_atmpt_1 : beautiful 16 := admit.
-
-(** Maybe we can use [b_sum] to construct a term of type [beautiful 16]?
-    Recall that [b_sum] is of type
-
-    forall n m : nat, beautiful n -> beautiful m -> beautiful (n + m)
-
-    If we can demonstrate the beauty of [5] and [11], we should
-    be done. *)
-
-Definition b_16_atmpt_2 : beautiful 16 := b_sum 5 11 admit admit.
-
-(** In the attempt above, we've omitted the proofs of the propositions
-    that [5] and [11] are beautiful. But the first of these is already
-    axiomatized in [b_5]: *)
-
-Definition b_16_atmpt_3 : beautiful 16 := b_sum 5 11 b_5 admit.
-
-(** What remains is to show that [11] is beautiful. We repeat the
-    procedure: *)
-
-Definition b_16_atmpt_4 : beautiful 16 :=
-  b_sum 5 11 b_5 (b_sum 5 6 admit admit).
-
-Definition b_16_atmpt_5 : beautiful 16 :=
-  b_sum 5 11 b_5 (b_sum 5 6 b_5 admit).
-
-Definition b_16_atmpt_6 : beautiful 16 :=
-  b_sum 5 11 b_5 (b_sum 5 6 b_5 (b_sum 3 3 admit admit)).
-
-(** And finally, we can complete the proof object: *)
-
-Definition b_16 : beautiful 16 :=
-  b_sum 5 11 b_5 (b_sum 5 6 b_5 (b_sum 3 3 b_3 b_3)).
-
-(** To recap, we've been guided by an informal proof that we have in
-    our minds, and we check the high level details before completing
-    the intricacies of the proof. The [admit] term allows us to do
-    this. *)
-
-(* ##################################################### *)
 (* ##################################################### *)
 (* ##################################################### *)
 (* ##################################################### *)
 
-(* $Date: 2013-01-30 14:45:46 -0500 (Wed, 30 Jan 2013) $ *)
+(* $Date: 2013-01-30 19:12:43 -0500 (Wed, 30 Jan 2013) $ *)
 
 
 
