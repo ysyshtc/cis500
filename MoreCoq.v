@@ -68,7 +68,8 @@ Theorem silly_ex :
      evenb 3 = true ->
      oddb 4 = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros H0 H1.
+  apply H1. Qed.
 (** [] *)
 
 (** To use the [apply] tactic, the (conclusion of the) fact
@@ -107,7 +108,10 @@ Theorem rev_exercise1 : forall (l l' : list nat),
      l = rev l' ->
      l' = rev l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l l' H.
+  rewrite -> H.
+  symmetry.
+  apply rev_involutive. Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, optional (apply_rewrite) *)
@@ -115,7 +119,9 @@ Proof.
     [rewrite].  Are there situations where both can usefully be
     applied?
 
-  (* FILL IN HERE *)
+    [rewrite] is primarily about substiting literal values for which
+    we have equivalences. Whereas [apply] considers a proposition as a
+    whole and _entirely prooves it_ based on an existing theorem.
 *)
 (** [] *)
 
