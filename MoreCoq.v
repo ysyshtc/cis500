@@ -207,7 +207,9 @@ Example sillyex1 : forall (X : Type) (x y z : X) (l j : list X),
      y :: l = x :: j ->
      x = y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l j H0 H1.
+  inversion H1.
+  reflexivity. Qed.
 (** [] *)
 
 Theorem silly6 : forall (n : nat),
@@ -228,7 +230,8 @@ Example sillyex2 : forall (X : Type) (x y z : X) (l j : list X),
      y :: l = z :: j ->
      x = z.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l j contra H1.
+  inversion contra. Qed.
 (** [] *)
 
 (** While the injectivity of constructors allows us to reason
@@ -267,12 +270,12 @@ Proof.
 Theorem beq_nat_0_l : forall n,
   true = beq_nat 0 n -> 0 = n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* TODO *) Admitted.
 
 Theorem beq_nat_0_r : forall n,
   true = beq_nat 0 n -> 0 = n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* TODO *) Admitted.
 (** [] *)
 
 
@@ -335,9 +338,38 @@ Theorem plus_n_n_injective : forall n m,
      n + n = m + m ->
      n = m.
 Proof.
-  intros n. induction n as [| n'].
+(*  intros n m. induction n as [| n'].
+  Case "n = 0".
+    simpl. intros H.
+    destruct m as [| m'].
+    SCase "m = 0". reflexivity.
+    SCase "m = S m'". inversion H.
+  Case "n = S n'".
+    intros H.
+    destruct m as [| m'].
+    SCase "m = 0". inversion H.
+    SCase "m = S m'".
+      rewrite -> IHn'.
+      rewrite <- plus_n_Sm in H.
+      rewrite -> plus_n_Sm in H.
+
+
+    induction m as [| m'].
+    SCase "m = 0". reflexivity.
+    SCase "m = S m'".
+      intros H.
+      inversion H.
+  Case "n = S n'".
+    induction m as [| m'].
+    SCase "m = 0". 
+      intros H.
+      inversion H. 
+    SCase "m = S m'".
+      intros H.*)
+      (* TODO *)
+      Admitted.
     (* Hint: use the plus_n_Sm lemma *)
-    (* FILL IN HERE *) Admitted.
+
 (** [] *)
 
 (* ###################################################### *)
@@ -358,7 +390,6 @@ Proof.
     different arguments to different results.  The way we _start_ this
     proof is a little bit delicate: if we begin it with
       intros n. induction n.
-]] 
     all is well.  But if we begin it with
       intros n m. induction n.
     we get stuck in the middle of the inductive case... *)
@@ -491,14 +522,25 @@ Proof.
 Theorem beq_nat_eq : forall n m,
   true = beq_nat n m -> n = m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n as [| n'].
+  Case "n = 0". 
+    intros m H.
+    destruct m as [| m'].
+    SCase "m = 0". reflexivity.
+    SCase "m = S m'". inversion H.
+  Case "n = S n'".
+    intros m H.
+    destruct m as [| m'].
+    SCase "m = 0". inversion H.
+    SCase "m = S m'".
+      apply IHn' in H.
+      inversion H. reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced (beq_nat_eq_informal) *)
 (** Give a careful informal proof of [beq_nat_eq], being as explicit
     as possible about quantifiers. *)
-
-(* FILL IN HERE *)
+(* TODO *)
 (** [] *)
 
 
@@ -612,7 +654,8 @@ Theorem index_after_last: forall (n : nat) (X : Type) (l : list X),
      length l = n ->
      index (S n) l = None.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n X.
+  (* TODO *)
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced, optional (index_after_last_informal) *)
