@@ -477,21 +477,36 @@ Admitted.
 Theorem gorgeous_plus13: forall n, 
   gorgeous n -> gorgeous (13+n).
 Proof.
-   (* FILL IN HERE *) Admitted.
+  intros n H.
+  assert (H1: 13 = 5 + 5 + 3). reflexivity.
+  rewrite -> H1.
+  apply g_plus5.
+  apply g_plus5.
+  apply g_plus3.
+  apply H.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (gorgeous_plus13_po):
 Give the proof object for theorem [gorgeous_plus13] above. *)
 
 Definition gorgeous_plus13_po: forall n, gorgeous n -> gorgeous (13+n):=
-   (* FILL IN HERE *) admit.
+  fun n => fun H : (gorgeous n) =>
+    g_plus3 (10 + n) (g_plus5 (5 + n) (g_plus5 n H)).
 (** [] *)
 
 (** **** Exercise: 2 stars (gorgeous_sum) *)
 Theorem gorgeous_sum : forall n m,
   gorgeous n -> gorgeous m -> gorgeous (n + m).
 Proof.
- (* FILL IN HERE *) Admitted.
+  intros n m Hn Hm.
+  induction Hn as [|n'|n'].
+  Case "n = 0". rewrite -> plus_O_n. apply Hm.
+  Case "n = 3 + n'".
+    apply g_plus3 with (n:=n' + m).
+    apply IHHn.
+  Case "n = 5 + n'".
+    apply g_plus5 with (n:=n' + m).
+    apply IHHn. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (beautiful__gorgeous) *)
@@ -553,7 +568,15 @@ Inductive ev : nat -> Prop :=
 Theorem double_even : forall n,
   ev (double n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  induction n as [|n'].
+  Case "n = 0".
+    simpl.
+    apply ev_0.
+  Case "n = S n'".
+    simpl.
+    apply ev_SS.
+    apply IHn'. Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (double_even_pfobj) *)
@@ -630,8 +653,9 @@ Qed.
 
 (** Could this proof also be carried out by induction on [n] instead
     of [E]?  If not, why not? *)
-
-(* FILL IN HERE *)
+(* No, because [ev n] we get to a point where we expect
+   [ev n -> even n] to tell us something about [even (S n)], which it
+   doesn't. *)
 (** [] *)
 
 (** The induction principle for inductively defined propositions does
@@ -653,7 +677,7 @@ Qed.
            ...
    Briefly explain why.
  
-(* FILL IN HERE *)
+We have no proof for [ev (S n)].
 *)
 (** [] *)
 
@@ -663,7 +687,14 @@ Qed.
 Theorem ev_sum : forall n m,
    ev n -> ev m -> ev (n+m).
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  intros n m Hn Hm.
+  induction Hn as [|n'].
+  Case "n = 0". simpl. apply Hm.
+  Case "n = S S n".
+    simpl.
+    apply ev_SS with (n:=(n' + m)).
+    apply IHHn.
+Qed.
 (** [] *)
 
 (** Another situation where we want to analyze evidence for evenness
@@ -732,7 +763,11 @@ Proof.
 Theorem SSSSev__even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n H.
+  inversion H as [|n0 H0 Hn].
+  inversion H0 as [|n1 H1 Hn'].
+  apply H1.
+Qed.
 
 (** The [inversion] tactic can also be used to derive goals by showing
     the absurdity of a hypothesis. *)
@@ -740,7 +775,11 @@ Proof.
 Theorem even5_nonsense : 
   ev 5 -> 2 + 2 = 9.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros H.
+  inversion H.
+  inversion H1.
+  inversion H3.
+Qed.
 (** [] *)
 
 (** We can generally use [inversion] on inductive propositions.
