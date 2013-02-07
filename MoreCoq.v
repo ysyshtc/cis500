@@ -270,12 +270,12 @@ Proof.
 Theorem beq_nat_0_l : forall n,
   true = beq_nat 0 n -> 0 = n.
 Proof.
-  (* TODO *) Admitted.
+  (* TKTK *) Admitted.
 
 Theorem beq_nat_0_r : forall n,
   true = beq_nat 0 n -> 0 = n.
 Proof.
-  (* TODO *) Admitted.
+  (* TKTK *) Admitted.
 (** [] *)
 
 
@@ -333,43 +333,30 @@ Proof.
 
 (** **** Exercise: 3 stars (plus_n_n_injective) *)
 (** Practice using "in" variants in this exercise. *)
-
 Theorem plus_n_n_injective : forall n m,
      n + n = m + m ->
      n = m.
 Proof.
-(*  intros n m. induction n as [| n'].
-  Case "n = 0".
-    simpl. intros H.
-    destruct m as [| m'].
-    SCase "m = 0". reflexivity.
-    SCase "m = S m'". inversion H.
-  Case "n = S n'".
-    intros H.
-    destruct m as [| m'].
-    SCase "m = 0". inversion H.
-    SCase "m = S m'".
-      rewrite -> IHn'.
+  intros n. induction n as [|n'].
+  (* plus_n_Sm: forall n m : nat, S (n + m) = n + S m *)
+  Case "0".
+    intros m H. destruct m as [|m'].
+    SCase "0". reflexivity.
+    SCase "m+1". inversion H.
+  Case "n+1".
+    intros m H. destruct m as [|m'].
+    SCase "0". inversion H.
+    SCase "m+1".
+      simpl in H.
       rewrite <- plus_n_Sm in H.
-      rewrite -> plus_n_Sm in H.
-
-
-    induction m as [| m'].
-    SCase "m = 0". reflexivity.
-    SCase "m = S m'".
-      intros H.
+      symmetry in H.
+      rewrite <- plus_n_Sm in H.
       inversion H.
-  Case "n = S n'".
-    induction m as [| m'].
-    SCase "m = 0". 
-      intros H.
-      inversion H. 
-    SCase "m = S m'".
-      intros H.*)
-      (* TODO *)
-      Admitted.
-    (* Hint: use the plus_n_Sm lemma *)
-
+      symmetry in H1.
+      apply IHn' in H1.
+      rewrite <- H1.
+      reflexivity.
+Qed.
 (** [] *)
 
 (* ###################################################### *)
