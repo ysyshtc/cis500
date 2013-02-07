@@ -93,7 +93,7 @@ Require Export MoreCoq.
 (** **** Exercise: 1 star (varieties_of_beauty) *)
 (** How many different ways are there to show that [8] is [beautiful]? *)
 
-(* FILL IN HERE *)
+(** Infinite: you can always introduce a bunch of zeroes to the two above. *)
 (** [] *)
 
 (** In Coq, we can express the definition of [beautiful] as
@@ -888,8 +888,19 @@ Definition b_16 : beautiful 16 :=
     - Prove that 
        forall l, pal l -> l = rev l.
 *)
+Inductive pal {X:Type} : list X -> Prop :=
+| pal_nil  : pal []
+| pal_odd  : forall x:X, pal [x]
+| pal_cons : forall (x1 x2 : X) (l:list X),
+               pal l -> x1 = x2 -> pal (x1 :: l ++ [x2]).
 
-(* FILL IN HERE *)
+Theorem pal_l_rev_l : forall (X:Type) (l:list X), pal (l ++ rev l).
+Proof. 
+  intros X l.
+  
+
+Theorem pal_prop : forall (X:Type) (l:list X), pal l -> l = rev l.
+Proof. Admitted.
 (** [] *)
 
 (** **** Exercise: 5 stars, optional (palindrome_converse) *)
