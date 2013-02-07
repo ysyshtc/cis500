@@ -107,13 +107,16 @@ Proof.
 Theorem snd_fst_is_swap : forall (p : natprod),
   (snd p, fst p) = swap_pair p.
 Proof.
-  intros p. destruct p as (n, m). reflexivity. Qed.
+  (* SOLUTION: *)
+  intros p.  destruct p as (n,m).  simpl.  reflexivity.  Qed.
+(** [] *)
 
 (** **** Exercise: 1 star, optional (fst_swap_is_snd) *)
 Theorem fst_swap_is_snd : forall (p : natprod),
   fst (swap_pair p) = snd p.
 Proof.
-  intros p. destruct p as (n, m). reflexivity. Qed.
+  (* SOLUTION: *) 
+  intros p. destruct p as (n,m).  simpl.  reflexivity.  Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -246,36 +249,56 @@ Proof. reflexivity.  Qed.
     what these functions should do. *)
 
 Fixpoint nonzeros (l:natlist) : natlist :=
+  (* SOLUTION: *)
   match l with
-    | nil => nil
-    | h::t => if beq_nat h 0 then nonzeros t else h :: (nonzeros t)
+  | nil => nil 
+  | h :: t =>
+      match h with
+      | O => nonzeros t
+      | S h' => h :: (nonzeros t)
+      end
   end.
 
 Example test_nonzeros:            nonzeros [0,1,0,2,3,0,0] = [1,2,3].
-Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Fixpoint oddmembers (l:natlist) : natlist :=
+  (* SOLUTION: *)
   match l with
-    | nil  => nil
-    | h::t => if oddb h then h :: (oddmembers t) else oddmembers t
+  | nil => nil 
+  | h :: t =>
+      match (oddb h) with
+      | true => h :: (oddmembers t)
+      | false => oddmembers t
+      end
   end.
 
 Example test_oddmembers:            oddmembers [0,1,0,2,3,0,0] = [1,3].
-Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Fixpoint countoddmembers (l:natlist) : nat :=
+  (* SOLUTION: *)
   match l with
-    | nil  => 0
-    | h::t => if oddb h then 1 + (countoddmembers t) else countoddmembers t
+  | nil => O
+  | h :: t =>
+      match (oddb h) with
+      | true => S (countoddmembers t)
+      | false => (countoddmembers t)
+      end
   end.
-  
+
 Example test_countoddmembers1:    countoddmembers [1,0,3,1,4,5] = 4.
-Proof. reflexivity. Qed.
-Example test_countoddmembers2:    countoddmembers [0,2,4] = 0.
-Proof. reflexivity. Qed.
-Example test_countoddmembers3:    countoddmembers nil = 0.
-Proof. reflexivity. Qed.
-(** [] *)
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_countoddmembers2:    countoddmembers [0,2,4] = 0.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_countoddmembers3:    countoddmembers nil = 0.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ (** [] *)
 
 (** **** Exercise: 3 stars, advanced (alternate) *)
 (** Complete the definition of [alternate], which "zips up" two lists
@@ -291,26 +314,41 @@ Proof. reflexivity. Qed.
     defining a new kind of pairs, but this is not the only way.)  *)
 
 
-Fixpoint alternate (l1 l2 : natlist) : natlist :=
-  match l1 with
-    | nil => l2
-    | h1::t1 =>
-      match l2 with
-        | nil => l1
-        | h2::t2 => h1 :: h2 :: alternate t1 t2
-      end 
- end.
+Inductive listprod : Type :=
+  lpair : natlist -> natlist -> listprod.
 
+Fixpoint alternate (l1 l2 : natlist) : natlist :=
+  (* SOLUTION: *)
+  match lpair l1 l2 with
+  | lpair nil _ => l2
+  | lpair _ nil => l1
+  | lpair (h1 :: t1) (h2 :: t2) => h1 :: h2 :: (alternate t1 t2)
+  end.
+
+
+(** Or: *)
+Fixpoint alternate' (l1 l2 : natlist) : natlist :=
+  match l1 with
+  | nil => l2
+  | h1::t1 => match l2 with 
+                nil => l1
+              | h2::t2 => h1 :: h2 :: (alternate' t1 t2)
+              end
+  end.
 
 Example test_alternate1:        alternate [1,2,3] [4,5,6] = [1,4,2,5,3,6].
-Proof. reflexivity. Qed.
-Example test_alternate2:        alternate [1] [4,5,6] = [1,4,5,6].
-Proof. reflexivity. Qed.
-Example test_alternate3:        alternate [1,2,3] [4] = [1,4,2,3].
-Proof. reflexivity. Qed.
-Example test_alternate4:        alternate [] [20,30] = [20,30].
-Proof. reflexivity. Qed.
-(** [] *)
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_alternate2:        alternate [1] [4,5,6] = [1,4,5,6].
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_alternate3:        alternate [1,2,3] [4] = [1,4,2,3].
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_alternate4:        alternate [] [20,30] = [20,30].
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ (** [] *)
 
 (* ###################################################### *)
 (** ** Bags via Lists *)
@@ -320,26 +358,32 @@ Proof. reflexivity. Qed.
     implementation of bags is to represent a bag of numbers as a
     list. *)
 
-Definition bag := natlist.
+Definition bag := natlist.  
 
 (** **** Exercise: 3 stars (bag_functions) *)
 (** Complete the following definitions for the functions
     [count], [sum], [add], and [member] for bags. *)
 
 Fixpoint count (v:nat) (s:bag) : nat := 
+  (* SOLUTION: *)
   match s with
-    | nil  => 0
-    | h::t => (if beq_nat v h then 1 else 0) + count v t
+  | nil => 0
+  | h :: t => 
+      match beq_nat h v with
+      | false => count v t
+      | true => S (count v t)
+      end
   end.
 
 (** All these proofs can be done just by [reflexivity]. *)
 
 Example test_count1:              count 1 [1,2,3,1,4,1] = 3.
-Proof. reflexivity. Qed.
-Example test_count2:              count 6 [1,2,3,1,4,1] = 0.
-Proof. reflexivity. Qed.
-
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_count2:              count 6 [1,2,3,1,4,1] = 0.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 (** Multiset [sum] is similar to set [union]: [sum a b] contains
     all the elements of [a] and of [b].  (Mathematicians usually
     define [union] on multisets a little bit differently, which
@@ -352,27 +396,36 @@ Proof. reflexivity. Qed.
     think about whether [sum] can be implemented in another way --
     perhaps by using functions that have already been defined.  *)
 
-Definition sum : bag -> bag -> bag := app.
+Definition sum : bag -> bag -> bag := 
+  (* SOLUTION: *)
+  app.
 
 Example test_sum1:              count 1 (sum [1,2,3] [1,4,1]) = 3.
-Proof. reflexivity. Qed.
-
-Definition add (v:nat) (s:bag) : bag := v :: s.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
+Definition add (v:nat) (s:bag) : bag := 
+  (* SOLUTION: *)
+  v :: s.
 
 Example test_add1:                count 1 (add 1 [1,4,1]) = 3.
-Proof. reflexivity. Qed.
-Example test_add2:                count 5 (add 1 [1,4,1]) = 0.
-Proof. reflexivity. Qed.
-
-Definition member (v:nat) (s:bag) : bool := negb (beq_nat 0 (count v s)).
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_add2:                count 5 (add 1 [1,4,1]) = 0.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
+Definition member (v:nat) (s:bag) : bool := 
+  (* SOLUTION: *)
+  negb (beq_nat (count v s) 0).
 
 Example test_member1:             member 1 [1,4,1] = true.
-Proof. reflexivity. Qed.
-Example test_member2:             member 2 [1,4,1] = false.
-Proof. reflexivity. Qed.
-(** [] *)
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_member2:             member 2 [1,4,1] = false.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ (** [] *)
 
 (** **** Exercise: 3 stars, optional (bag_more_functions) *)
 (** Here are some more bag functions for you to practice with. *)
@@ -380,48 +433,70 @@ Proof. reflexivity. Qed.
 Fixpoint remove_one (v:nat) (s:bag) : bag :=
   (* When remove_one is applied to a bag without the number to remove,
      it should return the same bag unchanged. *)
+  (* SOLUTION: *)
   match s with
-    | nil  => nil
-    | h::t => if beq_nat v h then t else h :: remove_one v t
+  | nil => nil
+  | h :: t => 
+      match beq_nat h v with
+      | true => t
+      | false => h :: (remove_one v t)
+      end
   end.
 
 Example test_remove_one1:         count 5 (remove_one 5 [2,1,5,4,1]) = 0.
- Proof. reflexivity. Qed.
-Example test_remove_one2:         count 5 (remove_one 5 [2,1,4,1]) = 0.
- Proof. reflexivity. Qed.
-Example test_remove_one3:         count 4 (remove_one 5 [2,1,4,5,1,4]) = 2.
- Proof. reflexivity. Qed.
-Example test_remove_one4: 
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_remove_one2:         count 5 (remove_one 5 [2,1,4,1]) = 0.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_remove_one3:         count 4 (remove_one 5 [2,1,4,5,1,4]) = 2.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_remove_one4: 
   count 5 (remove_one 5 [2,1,5,4,5,1,4]) = 1.
- Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Fixpoint remove_all (v:nat) (s:bag) : bag :=
+  (* SOLUTION: *)
   match s with
-    | nil  => nil
-    | h::t => if beq_nat v h then remove_all v t else h :: remove_all v t
+  | nil => nil
+  | h :: t => 
+      match beq_nat h v with
+      | true => remove_all v t
+      | false => h :: (remove_all v t)
+      end
   end.
 
 Example test_remove_all1:          count 5 (remove_all 5 [2,1,5,4,1]) = 0.
- Proof. reflexivity. Qed.
-Example test_remove_all2:          count 5 (remove_all 5 [2,1,4,1]) = 0.
- Proof. reflexivity. Qed.
-Example test_remove_all3:          count 4 (remove_all 5 [2,1,4,5,1,4]) = 2.
- Proof. reflexivity. Qed.
-Example test_remove_all4:          count 5 (remove_all 5 [2,1,5,4,5,1,4,5,1,4]) = 0.
- Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_remove_all2:          count 5 (remove_all 5 [2,1,4,1]) = 0.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_remove_all3:          count 4 (remove_all 5 [2,1,4,5,1,4]) = 2.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_remove_all4:          count 5 (remove_all 5 [2,1,5,4,5,1,4,5,1,4]) = 0.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Fixpoint subset (s1:bag) (s2:bag) : bool :=
-  match s1 with
-    | nil  => true
-    | h::t => if ble_nat (count h s1) (count h s2) then subset t s2 else false
+  (* SOLUTION: *)
+  match s1 with 
+  | nil => true
+  | h1 :: t1 => 
+      andb (member h1 s2)
+               (subset t1 (remove_one h1 s2))
   end.
 
-
 Example test_subset1:              subset [1,2] [2,1,4,1] = true.
- Proof. reflexivity. Qed.
-Example test_subset2:              subset [1,2,2] [2,1,4,1] = false.
- Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_subset2:              subset [1,2,2] [2,1,4,1] = false.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ (** [] *)
 
 (** **** Exercise: 3 stars (bag_theorem) *)
 (** Write down an interesting theorem about bags involving the
@@ -431,21 +506,16 @@ Example test_subset2:              subset [1,2,2] [2,1,4,1] = false.
     you haven't learned yet.  Feel free to ask for help if you get
     stuck! *)
 
-Theorem bag_theorem : forall (n:nat) (s:bag),
-                        count n (add n s) = (count n s) + 1.
+(* SOLUTION: *)
+(** Here is one possible solution: *)
+Theorem bag_add_one_count : forall s:bag, forall v:nat,
+  count v (add v s) = 1 + count v s.
 Proof.
-  intros n s.
-  assert (H: beq_nat n n = true).
-    Case "Assertion proof". induction n as [| n'].
-      SCase "n = 0". reflexivity.
-      SCase "n = S n'". simpl. rewrite <- IHn'. reflexivity.
-  destruct s as [| h t].
-  Case "s = []". simpl. rewrite -> H. reflexivity.
-  Case "s = h::t". simpl.
-  rewrite -> H. 
-  rewrite -> plus_comm.
-  reflexivity. Qed.
-
+  intros s v. simpl.
+  rewrite <- beq_nat_refl.
+  reflexivity.
+Qed.  
+(** [] *)
 
 (* ###################################################### *)
 (** * Reasoning About Lists *)
@@ -649,55 +719,6 @@ Proof.
     simpl. rewrite -> length_snoc. 
     rewrite -> IHl'. reflexivity.  Qed.
 
-(** ** Discussion... *)
-
-(* QUIZ *)
-(** To prove the following theorem, which tactics will we need besides
-    [intros], [simpl], [rewrite] and [reflexivity]?  (1) none (2) [destruct],
-    (3) [induction on n], (4) [induction on l], or (5) can't be
-    done with the tactics we've seen.
-    Theorem foo1 : forall n :nat, forall l: natlist, 
-    repeat n 0 = l -> length l = 0.
-*)
-(* /QUIZ *)
-
-(* QUIZ *)
-(** What about the next one? 
-    Theorem foo2 :  forall n m:nat, forall l: natlist,
-    repeat n m = l -> length l = m.
-    Which tactics do we need besides [intros], [simpl], [rewrite] and
-    [reflexivity]?  (1) none (2) [destruct],
-    (3) [induction on m], (4) [induction on l], or (5) can't be
-    done with the tactics we've seen.
-*)
-(* /QUIZ *)
-
-(* SOONER check that having two cases that are true is ok *)
-
-(* QUIZ *)
-(** What about the next one? 
-    Theorem foo3 :   forall l: natlist, forall n m:nat,
-    length l = m -> length (snoc l n) = S m.
-    Which tactics do we need besides [intros], [simpl], [rewrite] and
-    [reflexivity]?  (1) none (2) [destruct],
-    (3) [induction on m], (4) [induction on l], (5) using an auxiliary lemma,
-    or (6) can't be done with the tactics we've seen.
-*)
-(* /QUIZ *)
-
-(* QUIZ *)
-(** What about the next one? 
-    Theorem foo4 :  forall n :nat, forall l1 l2: natlist,
-    snoc l1 n = l2 -> (blt_nat 0 (length l2)) = true.
-    Which tactics do we need besides [intros], [simpl], [rewrite] and
-    [reflexivity]?  (1) none (2) [destruct],
-    (3) [induction on n], (4) [induction on l1], (5) [induction on l2], 
-    (6) can't be done with the tactics we've seen.
-*)
-(* /QUIZ *)
-
-(* /TERSE *)
-
 (** For comparison, here are informal proofs of these two theorems: 
 
     _Theorem_: For all numbers [n] and lists [l],
@@ -741,14 +762,14 @@ Proof.
 
 (** Obviously, the style of these proofs is rather longwinded
     and pedantic.  After the first few, we might find it easier to
-    follow proofs that give a little less detail overall (since we can
-    easily work them out in our own minds or on scratch paper if
-    necessary) and just highlight the non-obvious steps.  In this more
-    compressed style, the above proof might look more like this: *)
+    follow proofs that give fewer details (since we can easily work
+    them out in our own minds or on scratch paper if necessary) and
+    just highlight the non-obvious steps.  In this more compressed
+    style, the above proof might look more like this: *)
 
 (** _Theorem_:
      For all lists [l], [length (rev l) = length l].
-}}
+
     _Proof_: First, observe that
        length (snoc l n) = S (length l)
      for any [l].  This follows by a straightforward induction on [l].
@@ -792,39 +813,36 @@ Proof.
 
 (** **** Exercise: 3 stars (list_exercises) *)
 (** More practice with lists. *)
-(*
-Theorem cons_ass : forall (n:nat) (l1 l2:natlist),
-  n :: l ++ []*)
 
 Theorem app_nil_end : forall l : natlist, 
   l ++ [] = l.   
 Proof.
-  intros l. induction l as [| h t].
-  Case "[]". reflexivity.
-  Case "h::t".
-    simpl.
-    rewrite -> IHt.
-    reflexivity. Qed.
+  (* SOLUTION: *)
+  intros l. induction l as [| n l'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl. rewrite -> IHl'. reflexivity.  Qed.
 
-Theorem rev_snoc_cons : forall (l:natlist) (n:nat),
+
+Theorem rev_snoc : forall n : nat, forall l : natlist,
   rev (snoc l n) = n :: (rev l).
 Proof.
-  intros l n. induction l as [| h' t'].
-  Case "[]". reflexivity.
-  Case "h::t". simpl. rewrite -> IHt'. reflexivity. Qed.
-
+  intros n l. induction l as [| n' l'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl. rewrite -> IHl'. reflexivity.  Qed.
 
 Theorem rev_involutive : forall l : natlist,
   rev (rev l) = l.
 Proof.
-  intros l. induction l as [| h t].
-  Case "[]". reflexivity.
-  Case"h::t". 
-    simpl.
-    rewrite -> rev_snoc_cons.
-    rewrite -> IHt.
-    reflexivity. Qed.
-
+  (* SOLUTION: *)
+  intros l. induction l as [| n l'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl. rewrite -> rev_snoc. rewrite -> IHl'. reflexivity.  Qed.
 
 (** There is a short solution to the next exercise.  If you find
     yourself getting tangled up, step back and try to look for a
@@ -833,58 +851,58 @@ Proof.
 Theorem app_ass4 : forall l1 l2 l3 l4 : natlist,
   l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4.
 Proof.
-  intros l1 l2 l3 l4.
-  rewrite -> app_ass.
-  rewrite -> app_ass.
-  reflexivity. Qed.
-
+  (* SOLUTION: *)
+  intros l1 l2 l3 l4. 
+  rewrite -> app_ass. rewrite -> app_ass.
+  reflexivity.  Qed.
 
 Theorem snoc_append : forall (l:natlist) (n:nat),
   snoc l n = l ++ [n].
 Proof.
-  intros l n. induction l as [| h t].
-  Case "[]". reflexivity.
-  Case "h::t". simpl. rewrite <- IHt. reflexivity. Qed.
+  (* SOLUTION: *)
+  intros l n. induction l as [| n' l'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl. rewrite <- IHl'. reflexivity.  Qed.
 
 
-Theorem snoc_app_dist : forall (n:nat) (l1 l2:natlist),
-  l1 ++ (snoc l2 n) = snoc (l1 ++ l2) n.
+Theorem snoc_with_append : forall l1 l2 : natlist,
+                         forall n : nat,
+  snoc (l1 ++ l2) n = l1 ++ (snoc l2 n).
 Proof.
-  intros l1 l2 n.
-  induction l2 as [| h t].
-  Case "[]". reflexivity.
-  Case "h::t". simpl. rewrite <- IHt. reflexivity. Qed.
-
+  intros l1 l2 n. induction l1 as [| n' l1'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl. rewrite -> IHl1'. reflexivity.  Qed.
 
 Theorem distr_rev : forall l1 l2 : natlist,
   rev (l1 ++ l2) = (rev l2) ++ (rev l1).
 Proof.
-  intros l1 l2. induction l1 as [| h t].
-  Case "[]".
-    rewrite -> app_nil_end.
-    rewrite -> nil_app.
-    reflexivity.
-  Case "h::t".
-    simpl.
-    rewrite -> snoc_app_dist.
-    rewrite <- IHt.
-    reflexivity. Qed.
-
+  (* SOLUTION: *)
+  intros l1 l2. induction l1 as [| n l1'].
+  Case "l = nil".
+    simpl. rewrite -> app_nil_end. reflexivity.
+  Case "l = cons".
+    simpl. rewrite -> IHl1'. rewrite -> snoc_with_append. reflexivity.  Qed.
 
 (** An exercise about your implementation of [nonzeros]: *)
 
 Lemma nonzeros_length : forall l1 l2 : natlist,
   nonzeros (l1 ++ l2) = (nonzeros l1) ++ (nonzeros l2).
 Proof.
-  intros l1 l2. induction l1 as [| h t].
-  Case "[]". reflexivity.
-  Case "h::t".
-    simpl.
-    rewrite -> IHt.
-    destruct (beq_nat h 0).
-    SCase "beq_nat h 0 = true". reflexivity.
-    SCase "beq_nat h 0 = false". reflexivity. Qed.
-    
+  (* SOLUTION: *)
+  intros l1 l2.  induction l1 as [| n l1'].
+  Case "l1 = nil".
+    reflexivity.
+  Case "l1 = cons".
+    simpl. destruct n as [| n'].
+    SCase "n = 0".
+      rewrite -> IHl1'. reflexivity.
+    SCase "n = S n'".
+      rewrite -> IHl1'. reflexivity.  Qed.
+(** [] *)
 
 (* ###################################################### *)
 (** ** List Exercises, Part 2 *)
@@ -895,13 +913,17 @@ Proof.
        ([::]), [snoc], and [append] ([++]).  
      - Prove it. *) 
 
-Theorem list_thrm : forall (n:nat) (l1 l2 : natlist),
-  l1 ++ (n :: l2) = (snoc l1 n) ++ l2.
+(* SOLUTION: *)
+(** Here's one possibility: *)
+Theorem append_snoc : forall l1 l2 : natlist, forall n : nat,
+  ((snoc l1 n) ++ l2) = l1 ++ (n :: l2).
 Proof.
-  intros n l1 l2. induction l1 as [| h t].
-  Case "l1 = nil". reflexivity.
-  Case "l1 = h::t". simpl. rewrite <- IHt. reflexivity. Qed.
-  
+  intros l1 l2 n. induction l1 as [| n' l1'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl. rewrite -> IHl1'. reflexivity.  Qed.
+(** [] *)
 
 (** **** Exercise: 3 stars, advanced (bag_proofs) *)
 (** Here are a couple of little theorems to prove about your
@@ -909,8 +931,9 @@ Proof.
 
 Theorem count_member_nonzero : forall (s : bag),
   ble_nat 1 (count 1 (1 :: s)) = true.
-Proof. reflexivity. Qed.
-
+Proof.
+  (* SOLUTION: *)
+  intros s.  reflexivity.  Qed.
 
 (** The following lemma about [ble_nat] might help you in the next proof. *)
 
@@ -918,27 +941,46 @@ Theorem ble_n_Sn : forall n,
   ble_nat n (S n) = true.
 Proof.
   intros n. induction n as [| n'].
-  Case "0". simpl.  reflexivity.
-  Case "S n'". simpl.  rewrite IHn'.  reflexivity.  Qed.
+  Case "0".  
+    simpl.  reflexivity.
+  Case "S n'".
+    simpl.  rewrite IHn'.  reflexivity.  Qed.
 
 Theorem remove_decreases_count: forall (s : bag),
   ble_nat (count 0 (remove_one 0 s)) (count 0 s) = true.
 Proof.
-  intro s. induction s as [| h t].
-  Case "nil". reflexivity.
-  Case "h::t".
-    simpl.
-    destruct h.
-    SCase "h = 0". simpl. rewrite -> ble_n_Sn. reflexivity.
-    SCase "h = S h'". simpl. rewrite <- IHt. reflexivity. Qed.
-    
-    
+  (* SOLUTION: *)
+  intros s.  induction s as [| n s'].  
+  Case "s = nil".
+    simpl.  reflexivity.  
+  Case "s = cons".
+    simpl. destruct n as [| n'].  
+    SCase "0".
+      simpl.  rewrite ble_n_Sn. reflexivity.
+    SCase "S n'".
+      simpl. rewrite IHs'. reflexivity.  Qed.
+(** [] *)
 
 (** **** Exercise: 3 stars, optional (bag_count_sum) *)  
 (** Write down an interesting theorem about bags involving the
     functions [count] and [sum], and prove it.*)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+(** Here is one possible solution: *)
+Theorem count_sums : forall (s1 s2:bag), forall v:nat,
+  count v (sum s1 s2) = count v s1 + count v s2.
+Proof.
+  intros s1 s2 v.
+  induction s1 as [|v' s1'].
+  Case "s1 = nil".
+    reflexivity.
+  Case "s1 = v' :: s1'".
+    simpl. destruct (beq_nat v' v).
+    SCase "v' = v".
+      rewrite IHs1'. simpl. 
+      reflexivity.
+    SCase "v' <> v".
+      apply IHs1'.   Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (rev_injective) *)
@@ -949,7 +991,20 @@ Proof.
 There is a hard way and an easy way to solve this exercise.
 *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+(** The easy way is to use the fact that [rev] is an involution.  In
+    general, every involution is injective.  (The hard way is to go by
+    induction on [l1], but this requires proving a bunch of subsidiary
+    lemmas.)
+*)
+Theorem reverse_injective : forall l1 l2, rev l1 = rev l2 -> l1 = l2.
+Proof.
+  intros l1 l2 Heq.
+  rewrite <- rev_involutive.
+  rewrite <- Heq.
+  rewrite rev_involutive.
+  reflexivity.
+Qed.
 (** [] *)
 
 
@@ -1031,20 +1086,24 @@ Definition option_elim (d : nat) (o : natoption) : nat :=
    have to pass a default element for the [nil] case.  *)
 
 Definition hd_opt (l : natlist) : natoption :=
+  (* SOLUTION: *)
   match l with
-    | nil  => None
-    | h::t => Some h
+  | nil    => None
+  | n :: l => Some n
   end.
 
 Example test_hd_opt1 : hd_opt [] = None.
-Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Example test_hd_opt2 : hd_opt [1] = Some 1.
-Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Example test_hd_opt3 : hd_opt [5,6] = Some 5.
-Proof. reflexivity. Qed.
-(** [] *)
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ (** [] *)
 
 (** **** Exercise: 1 star, optional (option_elim_hd) *)
 (** This exercise relates your new [hd_opt] to the old [hd]. *)
@@ -1052,11 +1111,13 @@ Proof. reflexivity. Qed.
 Theorem option_elim_hd : forall (l:natlist) (default:nat),
   hd default l = option_elim default (hd_opt l).
 Proof.
-  intros l default.
-  destruct l.
-  Case "nil". reflexivity.
-  Case "h::t". reflexivity. Qed.
-
+  (* SOLUTION: *)
+  intros l. destruct l as [|n l'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons n l'".
+    reflexivity.  Qed.
+(** [] *)
 
 (** **** Exercise: 2 stars (beq_natlist) *)
 (** Fill in the definition of [beq_natlist], which compares
@@ -1064,37 +1125,34 @@ Proof.
     yields [true] for every list [l]. *)
 
 Fixpoint beq_natlist (l1 l2 : natlist) : bool :=
-  match l1 with
-  | nil =>
-    match l2 with
-      | nil    => true
-      | h2::t2 => false
-    end
-  | h1::t1 =>
-    match l2 with
-      | nil    => true
-      | h2::t2 => andb (beq_nat h1 h2) (beq_natlist t1 t2)
-    end
+  (* SOLUTION: *)
+  match l1,l2 with 
+  | nil,nil => true
+  | h1::t1,h2::t2 => andb (beq_nat h1 h2) (beq_natlist t1 t2)
+  | _,_ => false
   end.
 
 Example test_beq_natlist1 :   (beq_natlist nil nil = true).
- Proof. reflexivity. Qed.
-Example test_beq_natlist2 :   beq_natlist [1,2,3] [1,2,3] = true.
- Proof. reflexivity. Qed.
-Example test_beq_natlist3 :   beq_natlist [1,2,3] [1,2,4] = false.
- Proof. reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_beq_natlist2 :   beq_natlist [1,2,3] [1,2,3] = true.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_beq_natlist3 :   beq_natlist [1,2,3] [1,2,4] = false.
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Theorem beq_natlist_refl : forall l:natlist,
   true = beq_natlist l l.
 Proof.
-  intros l.
-  induction l as [| h t].
-  Case "nil". reflexivity.
-  Case "h::t".
-    simpl.
-    rewrite <- IHt.
-    rewrite <- beq_nat_refl.
-    reflexivity. Qed.
+  (* SOLUTION: *)
+  intros l. induction l as [| n l'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl.  rewrite <- beq_nat_refl.  rewrite <- IHl'.
+    reflexivity.  Qed.
+(** [] *)
 
 (* ###################################################### *)
 (** * Dictionaries *)
@@ -1134,17 +1192,18 @@ Fixpoint find (key : nat) (d : dictionary) : natoption :=
                        else (find key d')
   end.
 
+
 (** **** Exercise: 1 star (dictionary_invariant1) *)
 (** Complete the following proof. *)
 
 Theorem dictionary_invariant1' : forall (d : dictionary) (k v: nat),
   (find k (insert k v d)) = Some v.
 Proof.
-  intros d k v.
-  simpl.
-  rewrite <- beq_nat_refl.
-  reflexivity. Qed.
-
+ (* SOLUTION: *)
+intros d k v. 
+ simpl. rewrite <- beq_nat_refl. reflexivity.
+Qed.
+(** [] *)
 
 (** **** Exercise: 1 star (dictionary_invariant2) *)
 (** Complete the following proof. *)
@@ -1152,11 +1211,11 @@ Proof.
 Theorem dictionary_invariant2' : forall (d : dictionary) (m n o: nat),
   (beq_nat m n) = false -> (find m d) = (find m (insert n o d)).
 Proof.
-  intros d m n o.
-  intros H.
-  simpl.
-  rewrite -> H.
-  reflexivity. Qed.
+ (* SOLUTION: *)
+intros d m n o H0.
+ simpl. rewrite -> H0. reflexivity.
+Qed.
+(** [] *)
 
 
 
@@ -1164,5 +1223,5 @@ End Dictionary.
 
 End NatList.
 
-(* $Date: 2013-01-16 22:29:57 -0500 (Wed, 16 Jan 2013) $ *)
+(* $Date: 2013-01-28 10:31:53 -0500 (Mon, 28 Jan 2013) $ *)
 
