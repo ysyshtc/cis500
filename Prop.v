@@ -890,17 +890,35 @@ Definition b_16 : beautiful 16 :=
 *)
 Inductive pal {X:Type} : list X -> Prop :=
 | pal_nil  : pal []
-| pal_odd  : forall x:X, pal [x]
+(*| pal_odd  : forall x:X, pal [x]*)
 | pal_cons : forall (x1 x2 : X) (l:list X),
-               pal l -> x1 = x2 -> pal (x1 :: l ++ [x2]).
+               pal l -> x1 = x2 -> pal (x1 :: snoc l x2).
 
 Theorem pal_l_rev_l : forall (X:Type) (l:list X), pal (l ++ rev l).
 Proof. 
-  intros X l.
-  
+  intros X l. induction l as [|h t].
+  Case "[]". simpl. apply pal_nil.
+  Case "h::t". 
+    simpl.
+    rewrite <- snoc_with_append.
+    apply pal_cons.
+    apply IHt.
+    reflexivity.
+Qed.
 
 Theorem pal_prop : forall (X:Type) (l:list X), pal l -> l = rev l.
-Proof. Admitted.
+Proof.
+  intros X l H.
+  induction H as [|x1 x2 xs].
+  Case "[]". reflexivity.
+  Case "h::t".
+    rewrite <- H0.
+    simpl.
+    rewrite -> rev_snoc.
+    simpl.
+    rewrite <- IHpal.
+    reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 5 stars, optional (palindrome_converse) *)
