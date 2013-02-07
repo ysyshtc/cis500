@@ -484,6 +484,7 @@ Proof.
   apply g_plus5.
   apply g_plus3.
   apply H.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (gorgeous_plus13_po):
