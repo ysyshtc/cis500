@@ -272,10 +272,12 @@ Print eight_is_beautiful'''.
 Theorem six_is_beautiful :
   beautiful 6.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply b_sum with (n:=3) (m:=3).
+  apply b_3.
+  apply b_3. Qed.
 
 Definition six_is_beautiful' : beautiful 6 :=
-  (* FILL IN HERE *) admit.
+  b_sum 3 3 b_3 b_3.
 (** [] *)
 
 (** **** Exercise: 1 star (nine_is_beautiful) *)
@@ -284,10 +286,13 @@ Definition six_is_beautiful' : beautiful 6 :=
 Theorem nine_is_beautiful :
   beautiful 9.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply b_sum with (n:=3) (m:=6).
+  apply b_3.
+  apply six_is_beautiful. Qed.
+  
 
 Definition nine_is_beautiful' : beautiful 9 :=
-  (* FILL IN HERE *) admit.
+  b_sum 6 3 six_is_beautiful b_3.
 (** [] *)
 
 
@@ -339,7 +344,11 @@ Check b_plus3''.
 (** **** Exercise: 2 stars (b_times2) *)
 Theorem b_times2: forall n, beautiful n -> beautiful (2*n).
 Proof.
-    (* FILL IN HERE *) Admitted.
+  intros n H.
+  unfold mult.
+  rewrite -> plus_0_r.
+  apply b_sum.
+  apply H. apply H. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (b_times2') *)
@@ -351,7 +360,18 @@ Definition b_times2': forall n, beautiful n -> beautiful (2*n) :=
 (** **** Exercise: 2 stars (b_timesm) *)
 Theorem b_timesm: forall n m, beautiful n -> beautiful (m*n).
 Proof.
-   (* FILL IN HERE *) Admitted.
+  intros n m H.
+  induction m as [| m'].
+  Case "m = 0".
+    rewrite -> mult_0_l.
+    apply b_0.
+  Case "m = S m'".
+    rewrite -> mult_1_plus.
+    apply b_sum.
+    SCase "beautiful n". apply H.
+    SCase "beautiful (m' * n)". apply IHm'. Qed.
+    
+  
 (** [] *)
 
 (* ####################################################### *)
@@ -398,7 +418,16 @@ Inductive gorgeous : nat -> Prop :=
 (** Write out the definition of [gorgeous] numbers using inference rule
     notation.
  
-(* FILL IN HERE *)
+                    ----------                              (g_0)
+                    goregous 0
+
+                    gorgeous n
+                    --------------                          (g_plus3)
+                    gorgeous (n+3)
+
+                    gorgeous n
+                    --------------                          (g_plus5)
+                    gorgeous (n+5)
 []
 *)
 

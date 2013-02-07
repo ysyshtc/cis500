@@ -677,7 +677,7 @@ Proof.
       [n], if [length l = n] then [index (S n) l = None].
  
      _Proof_:
-     (* FILL IN HERE *)
+     (* TODO *)
 []
 *)
 
@@ -689,7 +689,16 @@ Theorem length_snoc''' : forall (n : nat) (X : Type)
      length l = n ->
      length (snoc l v) = S n. 
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n X v l.
+  generalize dependent n.
+  induction l as [| h t].
+  Case "l = []".
+    intros n H.
+    destruct n as [| n'].
+    SCase "n = 0". reflexivity.
+    SCase "n = S n'".
+      Admitted.
+(* TODO *)
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (app_length_cons) *)
@@ -700,7 +709,7 @@ Theorem app_length_cons : forall (X : Type) (l1 l2 : list X)
      length (l1 ++ (x :: l2)) = n ->
      S (length (l1 ++ l2)) = n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* TODO *) Admitted.
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (app_length_twice) *)
@@ -747,7 +756,11 @@ Proof.
 Theorem override_shadow : forall {X:Type} x1 x2 k1 k2 (f : nat->X),
   (override (override f k1 x2) k1 x1) k2 = (override f k1 x1) k2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x1 x2 k1 k2 f.
+  unfold override.
+  destruct (beq_nat k1 k2).
+  Case "beq_nat k1 k2 = true". reflexivity.
+  Case "beq_nat k1 k2 = false". reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (combine_split) *)
@@ -759,7 +772,7 @@ Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* TODO *) Admitted.
 *)
 (** [] *)
 
@@ -773,7 +786,7 @@ Proof.
     things than necessary.  Hint: what property do you need of [l1]
     and [l2] for [split] [combine l1 l2 = (l1,l2)] to be true?) *)
 
-(* FILL IN HERE *) 
+(* TODO *) 
 (** [] *)
 
 (* ###################################################### *)
@@ -859,8 +872,77 @@ Proof.
 Theorem bool_fn_applied_thrice : 
   forall (f : bool -> bool) (b : bool), 
   f (f (f b)) = f b.
-Proof.
-  (* FILL IN HERE *) Admitted.
+Proof. Admitted.
+(*  intros f b.
+  remember (f (f b)) as ffb.
+  destruct ffb.
+    destruct b.
+      reflexivity.
+      
+
+  destruct b.
+  Case "b = true".
+    remember (f true) as ftrue.
+    destruct Sf
+    destruct ftrue.
+    SCase "ftrue = true".
+      remember (
+    
+    remember (f fb) as ffb.
+    destruct fb.
+    SCase "fb = true".
+      symmetry.
+      apply Heqfb.
+    SCase "fb = false".
+      
+  intros f b.
+  remember (f (f (f b))) as ffb.
+  destruct ffb.
+  Case "ffb = true".
+    remember (f b) as fb.
+    destruct fb.
+      SSCase "fb = true". reflexivity.
+      SSCase "fb = false". reflexivity.
+
+
+  destruct b.
+  remember (f true) as ftrue.
+  destruct ftrue.
+  remember (f b) as fb.
+  destruct fb.
+    Case "fb = true".
+      remember (f true) as 
+  destruct b.
+  
+  
+  remember (f (f b)) as ffb.
+  destruct ffb.
+    destruct b.
+    reflexivity.
+    remember (f true) as ftrue.
+    destruct ftrue.
+
+
+
+  remember (f b) as fb.
+  destruct fb.
+  Case "fb = true".
+    destruct (f true).
+    symmetry. apply Heqfb.
+
+
+    remember (f true) as ftrue.
+    destruct (ftrue).
+    SCase "ftrue = true".
+      symmetry. apply Heqftrue.
+    SCase "ftrue = false".
+      remember (f false) as ffalse.
+      destruct ffalse.
+      SSCase "f false = true". reflexivity.
+      SSCase "f false = true".
+
+ rewrite -> Heqftrue.
+  reflexivity.*)
 (** [] *)
 
 (** **** Exercise: 2 stars (override_same) *)
@@ -868,7 +950,18 @@ Theorem override_same : forall {X:Type} x1 k1 k2 (f : nat->X),
   f k1 = x1 -> 
   (override f k1 x1) k2 = f k2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x1 k1 k2 f eq.
+  unfold override.
+  remember (beq_nat k1 k2) as k12eq.
+  destruct k12eq.
+  Case "k12eq = true".
+    rewrite <- eq.
+    apply beq_nat_eq in Heqk12eq.
+    inversion Heqk12eq.
+    reflexivity.
+  Case "k12eq = false".
+    reflexivity. Qed.
+  
 (** [] *)
 
 (* ###################################################### *)
@@ -911,7 +1004,7 @@ Proof.
      with [[nat]], [n] with [[a,b]], and [o] with [[e,f]].
      However, the matching process doesn't determine an
      instantiation for [m]: we have to supply one explicitly
-     by adding [with (m:=[c,d])] to the invocation of
+{     by adding [with (m:=[c,d])] to the invocation of
      [apply]. *)
   apply trans_eq with (m:=[c,d]). apply eq1. apply eq2.   Qed.
 
@@ -925,7 +1018,18 @@ Theorem override_permute : forall {X:Type} x1 x2 k1 k2 k3 (f : nat->X),
   false = beq_nat k2 k1 ->
   (override (override f k2 x2) k1 x1) k3 = (override (override f k1 x1) k2 x2) k3.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x1 x2 k1 k2 k3 f.
+  intros eq.
+  unfold override.
+  remember (beq_nat k1 k3) as k1eqk3.
+  destruct k1eqk3.
+  Case "beq_nat k1 k3 = true".
+    apply beq_nat_eq in Heqk1eqk3.
+    rewrite <- Heqk1eqk3.
+    rewrite <- eq.
+    reflexivity.
+  Case "beq_nat k1 k3 = false".
+    reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (apply_with_exercise1) *)
