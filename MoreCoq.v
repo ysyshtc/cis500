@@ -527,7 +527,7 @@ Proof.
 (** **** Exercise: 2 stars, advanced (beq_nat_eq_informal) *)
 (** Give a careful informal proof of [beq_nat_eq], being as explicit
     as possible about quantifiers. *)
-(* TODO *)
+(* TKTK *)
 (** [] *)
 
 
@@ -664,7 +664,7 @@ Proof.
       [n], if [length l = n] then [index (S n) l = None].
  
      _Proof_:
-     (* TODO *)
+     (* TKTK *)
 []
 *)
 
@@ -685,7 +685,7 @@ Proof.
     SCase "n = 0". reflexivity.
     SCase "n = S n'".
       Admitted.
-(* TODO *)
+(* TKTK *)
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (app_length_cons) *)
@@ -696,7 +696,7 @@ Theorem app_length_cons : forall (X : Type) (l1 l2 : list X)
      length (l1 ++ (x :: l2)) = n ->
      S (length (l1 ++ l2)) = n.
 Proof.
-  (* TODO *) Admitted.
+  (* TKTK *) Admitted.
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (app_length_twice) *)
@@ -759,7 +759,7 @@ Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
 Proof.
-  (* TODO *) Admitted.
+  (* TKTK *) Admitted.
 *)
 (** [] *)
 
@@ -773,7 +773,7 @@ Proof.
     things than necessary.  Hint: what property do you need of [l1]
     and [l2] for [split] [combine l1 l2 = (l1,l2)] to be true?) *)
 
-(* TODO *) 
+(* TKTK *) 
 (** [] *)
 
 (* ###################################################### *)
@@ -1119,7 +1119,15 @@ Proof.
 Theorem beq_nat_sym : forall (n m : nat),
   beq_nat n m = beq_nat m n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n. induction n as [|n'].
+  Case "0".
+    intros m. destruct m as [|m'].
+    SCase "0". reflexivity.
+    SCase "m+1". reflexivity.
+  Case "n+1".
+    intros m. destruct m as [|m'].
+    SCase "0". reflexivity.
+    SCase "m+1". apply IHn'. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced, optional (beq_nat_sym_informal) *)
