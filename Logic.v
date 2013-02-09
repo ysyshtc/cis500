@@ -1098,14 +1098,15 @@ Inductive next_even (n:nat) : nat -> Prop :=
 (** Define an inductive binary relation [total_relation] that holds
     between every pair of natural numbers. *)
 
-(* FILL IN HERE *)
+Inductive total_relation : nat -> nat -> Prop :=
+  alln : forall (n m:nat), total_relation n n.
+
 (** [] *)
 
 (** **** Exercise: 2 stars (empty_relation) *)
 (** Define an inductive binary relation [empty_relation] (on numbers)
     that never holds. *)
-
-(* FILL IN HERE *)
+Inductive empty_relation : nat -> nat -> Prop :=. 
 (** [] *)
 
 (** **** Exercise: 3 stars (R_provability) *)
