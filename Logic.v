@@ -625,7 +625,7 @@ Definition de_morgan_not_and_not := forall P Q:Prop,
 Definition implies_to_or := forall P Q:Prop, 
   (P->Q) -> (~P\/Q). 
 
-(* FILL IN HERE *)
+(* TODO *)
 (** [] *)
 
 (* ########################################################## *)
@@ -657,17 +657,38 @@ Proof.
 
 
 (** **** Exercise: 2 stars (not_eq_beq_false) *)
-Theorem not_eq_beq_false : forall n n' : nat,
-     n <> n' ->
-     beq_nat n n' = false.
+Theorem not_eq_beq_false : forall n m : nat,
+     n <> m ->
+     beq_nat n m = false.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  intros n m H.
+(*  unfold not in H.
+  destruct (beq_nat n m).
+  apply ex_falso_quodlibet.
+  apply H.*)
+  unfold not in H.
+  destruct n as [|n'].
+  Case "n=0".
+    destruct m as [|m'].
+    SCase "m=0".
+      simpl.
+      apply ex_falso_quodlibet.
+      apply H.
+      reflexivity.
+    SCase "S m'". simpl. reflexivity.
+  Case "S n'".
+    destruct m as [|m'].
+    SCase "m=0". reflexivity.
+    SCase "S m'".
+      simpl.
+      Admitted.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (beq_false_not_eq) *)
 Theorem beq_false_not_eq : forall n m,
   false = beq_nat n m -> n <> m.
 Proof.
+  intros n m H1 H2.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
@@ -775,7 +796,11 @@ Definition p : ex nat (fun n => beautiful (S n)) :=
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  intros X P H1 H2.
+  inversion H2 as [w Hw].
+  apply Hw in H1.
+  apply H1.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (not_exists_dist) *)
@@ -797,7 +822,31 @@ Proof.
 Theorem dist_exists_or : forall (X:Type) (P Q : X -> Prop),
   (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
 Proof.
-   (* FILL IN HERE *) Admitted.
+  intros X P Q.
+  split.
+  Case "->".
+    intros H.
+    inversion H as [w [HP | HQ]].
+    SCase "left".
+      left.
+      exists w.
+      apply HP.
+    SCase "right".
+      right.
+      exists w.
+      apply HQ.
+  Case "<-".
+    intros H.
+    inversion H as [[p HP] | [q HQ]].
+    SCase "left".
+      exists p.
+      left.
+      apply HP.
+    SCase "right".
+      exists q.
+      right.
+      apply HQ.
+Qed.
 (** [] *)
 
 (* Print dist_exists_or. *)
