@@ -1134,7 +1134,14 @@ Inductive R : nat -> nat -> nat -> Prop :=
       would the set of provable propositions change?  Briefly (1
       sentence) explain your answer.
 
-(* FILL IN HERE *)
+[R 1 1 2] is provable: c2 <- c3 <- c1
+[R 2 2 6] is *not* provable
+
+The set of provable propositions *wouldn't* change if we dropped [c5],
+becuase [c5] is the identity - it doesn't chance the proposition it's
+given and so we can't do anything with it.
+
+It also wouldn't change to drop [c4], since that just recreates things we could've already done with [c1, c2].
 []
 *)
 
