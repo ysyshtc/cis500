@@ -125,7 +125,8 @@ Definition preserved_by_S (P:nat->Prop) : Prop :=
     equivalent to [Peven n] otherwise. *)
 
 Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
-  (* FILL IN HERE *) admit.
+  fun n:nat =>
+    if oddb n then Podd n else Peven n.
 
 (** To test your definition, see whether you can prove the following
     facts: *)
@@ -136,7 +137,14 @@ Theorem combine_odd_even_intro :
     (oddb n = false -> Peven n) ->
     combine_odd_even Podd Peven n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P1 P2 n H1 H2.
+  unfold combine_odd_even.
+  destruct (oddb n).
+  Case "oddb n = true".
+    apply H1. reflexivity.
+  Case "oddb n = false".
+    apply H2. reflexivity.
+Qed.
 
 Theorem combine_odd_even_elim_odd :
   forall (Podd Peven : nat -> Prop) (n : nat),
@@ -144,7 +152,11 @@ Theorem combine_odd_even_elim_odd :
     oddb n = true ->
     Podd n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P1 P2 n H1 H2.
+  unfold combine_odd_even in H1.
+  rewrite -> H2 in H1.
+  apply H1.
+Qed.
 
 Theorem combine_odd_even_elim_even :
   forall (Podd Peven : nat -> Prop) (n : nat),
@@ -152,8 +164,11 @@ Theorem combine_odd_even_elim_even :
     oddb n = false ->
     Peven n.
 Proof.
-  (* FILL IN HERE *) Admitted.
-
+  intros P1 P2 n H1 H2.
+  unfold combine_odd_even in H1.
+  rewrite -> H2 in H1.
+  apply H1.
+Qed.
 (** [] *)
 
 
