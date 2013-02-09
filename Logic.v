@@ -147,7 +147,13 @@ Theorem and_assoc : forall P Q R : Prop,
 Proof.
   intros P Q R H.
   inversion H as [HP [HQ HR]].
-(* FILL IN HERE *) Admitted.
+  split.
+  Case "P /\ Q".
+    split.
+    SCase "P". apply HP.
+    SCase "Q". apply HQ.
+  Case "R". apply HR.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars (even__ev) *)
@@ -164,7 +170,26 @@ Theorem even__ev : forall n : nat,
   (even n -> ev n) /\ (even (S n) -> ev (S n)).
 Proof.
   (* Hint: Use induction on [n]. *)
-  (* FILL IN HERE *) Admitted.
+(*  intros n.
+  induction n as [|n'].
+  Case "0".
+    split.
+    SCase "left". intros. apply ev_0.
+    SCase "right".
+      intros H.
+      unfold even in H.
+      simpl in H.
+      inversion H.
+  Case "n+1".
+    inversion IHn' as [IHl IHr].
+    split.
+    SCase "left". apply IHr.
+    SCase "right". 
+      intros H.
+      unfold even in Heven. simpl in Heven. 
+      rewrite -> SSev__even.*)
+(* TOOD *)
+Admitted.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (conj_fact) *)
@@ -232,7 +257,7 @@ Proof.
 
 Definition beautiful_iff_gorgeous :
   forall n, beautiful n <-> gorgeous n :=
-  (* FILL IN HERE *) admit.
+  (* TODO *) admit.
 (** [] *)
 
 (** Some of Coq's tactics treat [iff] statements specially, thus
@@ -322,8 +347,18 @@ Proof.
 Theorem or_distributes_over_and_2 : forall P Q R : Prop,
   (P \/ Q) /\ (P \/ R) -> P \/ (Q /\ R).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q R H.
+  inversion H as [[HP1 | HQ] [HP2 | HR]].
+  Case "left-left". left. apply HP1.
+  Case "left-right". left. apply HP1.
+  Case "right-left". left. apply HP2.
+  Case "right-right".
+    right.
+    split.
+    SCase "left". apply HQ.
+    SCase "left". apply HR.
+Qed.
+  (** [] *)
 
 (** **** Exercise: 1 star, optional (or_distributes_over_and) *)
 Theorem or_distributes_over_and : forall P Q R : Prop,
