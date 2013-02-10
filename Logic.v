@@ -1184,7 +1184,16 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     Are there any important properties of the function [forallb] which
     are not captured by your specification? *)
 
-
+Theorem all_forallb :
+  forall (X:Type) (l:list X) (P : X -> Prop) (t : X -> bool),
+    (forall x:X, (P x) <-> (t x = true)) ->
+    (forallb t l = true <-> all X P l).
+Proof.
+  intros X l P t H.
+  split.
+  Case "->".
+    intros H1.
+    Admitted.
 
 (** [] *)
 
@@ -1339,8 +1348,9 @@ Proof.
     does not stutter.) *)
 
 Inductive nostutter:  list nat -> Prop :=
-
-.
+| ns_nil : nostutter []
+| ns_one : forall n, nostutter [n]
+| ns_two : forall n m l, n <> m -> nostutter (m::l) -> nostutter (n::m::l).
 
 (** Make sure each of these tests succeeds, but you are free
     to change the proof if the given one doesn't work for you.
@@ -1355,32 +1365,21 @@ Inductive nostutter:  list nat -> Prop :=
     tactics.  *)
 
 Example test_nostutter_1:      nostutter [3,1,4,1,5,6].
-(* FILL IN HERE *) Admitted.
-(* 
   Proof. repeat constructor; apply beq_false_not_eq; auto. Qed.
-*)
+
 
 Example test_nostutter_2:  nostutter [].
-(* FILL IN HERE *) Admitted.
-(* 
   Proof. repeat constructor; apply beq_false_not_eq; auto. Qed.
-*)
 
 Example test_nostutter_3:  nostutter [5].
-(* FILL IN HERE *) Admitted.
-(* 
   Proof. repeat constructor; apply beq_false_not_eq; auto. Qed.
-*)
 
 Example test_nostutter_4:      not (nostutter [3,1,1,4]).
-(* FILL IN HERE *) Admitted.
-(* 
   Proof. intro.
   repeat match goal with 
     h: nostutter _ |- _ => inversion h; clear h; subst 
   end.
   contradiction H1; auto. Qed.
-*)
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (pigeonhole principle) *)
