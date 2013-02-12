@@ -187,12 +187,11 @@ Proof.
     SCase "right". 
       intros H.
       apply ev_SS.
-      apply IHl. (*TODO *)
-      compute in H.
-      unfold even in Heven. simpl in Heven. 
-      rewrite -> SSev__even.*)
-(* TODO *)
-Admitted.
+      apply IHl.
+      unfold even.
+      unfold even in H. simpl in H.
+      apply H.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (conj_fact) *)
@@ -665,6 +664,33 @@ Theorem not_eq_beq_false : forall n m : nat,
      beq_nat n m = false.
 Proof. 
   intros n m H.
+  unfold not in H.
+  induction n as [|n'].
+  Case "n = 0".
+    destruct m as [|m'].
+    SCase "m = 0".
+      simpl.
+      apply ex_falso_quodlibet.
+      apply H.
+      reflexivity.
+    SCase "m = S m'". reflexivity.
+  Case "n = S n'".
+    destruct m as [|m'].
+    SCase "m = 0". reflexivity.
+    SCase "m = S m'". simpl. destruct (beq_nat n' m'). apply ex_falso_quodlibet. (* TODO *)
+    
+    
+
+  remember (beq_nat n m).
+  unfold not in H.
+  destruct b.
+  apply ex_falso_quodlibet.
+  apply H.
+  induction n as [|n'].
+    inversion in Heqb.
+  unfold not in H.
+  apply H.
+  inversion b.
 (*  unfold not in H.
   destruct (beq_nat n m).
   apply ex_falso_quodlibet.
@@ -683,7 +709,8 @@ Proof.
     destruct m as [|m'].
     SCase "m=0". reflexivity.
     SCase "S m'".
-      simpl.
+      unfold beq_nat.
+      inversion H.
       Admitted.
 (* TODO *)
 (** [] *)
