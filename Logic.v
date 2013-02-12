@@ -170,7 +170,7 @@ Theorem even__ev : forall n : nat,
   (even n -> ev n) /\ (even (S n) -> ev (S n)).
 Proof.
   (* Hint: Use induction on [n]. *)
-(*  intros n.
+  intros n.
   induction n as [|n'].
   Case "0".
     split.
@@ -186,9 +186,12 @@ Proof.
     SCase "left". apply IHr.
     SCase "right". 
       intros H.
+      apply ev_SS.
+      apply IHl. (*TODO *)
+      compute in H.
       unfold even in Heven. simpl in Heven. 
       rewrite -> SSev__even.*)
-(* TOOD *)
+(* TODO *)
 Admitted.
 (** [] *)
 
@@ -257,7 +260,7 @@ Proof.
 
 Definition beautiful_iff_gorgeous :
   forall n, beautiful n <-> gorgeous n :=
-  (* TODO *) admit.
+  (* FILL IN HERE *) admit.
 (** [] *)
 
 (** Some of Coq's tactics treat [iff] statements specially, thus
@@ -478,7 +481,7 @@ Proof.
     intution is that [True] should be a proposition for which it is
     trivial to give evidence.) *)
 
-(* TODO *)
+(* FILL IN HERE *)
 (** [] *)
 
 (** However, unlike [False], which we'll use extensively, [True] is
@@ -533,7 +536,7 @@ Proof.
    _Theorem_: [P] implies [~~P], for any proposition [P].
 
    _Proof_:
-(* TODO *)
+(* FILL IN HERE *)
    []
 *)
 
@@ -562,7 +565,7 @@ Qed.
 (** Write an informal proof (in English) of the proposition [forall P
     : Prop, ~(P /\ ~P)]. *)
 
-(* TODO *)
+(* FILL IN HERE *)
 (** [] *)
 
 Theorem five_not_even :  
@@ -625,7 +628,7 @@ Definition de_morgan_not_and_not := forall P Q:Prop,
 Definition implies_to_or := forall P Q:Prop, 
   (P->Q) -> (~P\/Q). 
 
-(* TODO *)
+(* FILL IN HERE *)
 (** [] *)
 
 (* ########################################################## *)
@@ -682,6 +685,7 @@ Proof.
     SCase "S m'".
       simpl.
       Admitted.
+(* TODO *)
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (beq_false_not_eq) *)
@@ -1194,7 +1198,7 @@ Proof.
   Case "->".
     intros H1.
     Admitted.
-
+(* TODO *)
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (filter_challenge) *)
@@ -1222,7 +1226,7 @@ Proof.
     for one list to be a merge of two others.  Do this with an
     inductive relation, not a [Fixpoint].)  *)
 
-(* TODO *)
+(* FILL IN HERE *)
 (** [] *)
 
 (** **** Exercise: 5 stars, advanced, optional (filter_challenge_2) *)
@@ -1250,18 +1254,18 @@ Inductive appears_in {X:Type} (a:X) : list X -> Prop :=
 Lemma appears_in_app : forall {X:Type} (xs ys : list X) (x:X), 
      appears_in x (xs ++ ys) -> appears_in x xs \/ appears_in x ys.
 Proof.
-  (* TODO *) Admitted.
+  (* FILL IN HERE *) Admitted.
 
 Lemma app_appears_in : forall {X:Type} (xs ys : list X) (x:X), 
      appears_in x xs \/ appears_in x ys -> appears_in x (xs ++ ys).
 Proof.
-  (* TODO *) Admitted.
+  (* FILL IN HERE *) Admitted.
 
 (** Now use [appears_in] to define a proposition [disjoint X l1 l2],
     which should be provable exactly when [l1] and [l2] are
     lists (with elements of type X) that have no elements in common. *)
 
-(* TODO *)
+(* FILL IN HERE *)
 
 (** Next, use [appears_in] to define an inductive proposition
     [no_repeats X l], which should be provable exactly when [l] is a
@@ -1270,12 +1274,12 @@ Proof.
     [no_repeats bool []] should be provable, while [no_repeats nat
     [1,2,1]] and [no_repeats bool [true,true]] should not be.  *)
 
-(* TODO *)
+(* FILL IN HERE *)
 
 (** Finally, state and prove one or more interesting theorems relating
     [disjoint], [no_repeats] and [++] (list append).  *)
 
-(* TODO *)
+(* FILL IN HERE *)
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (le_exercises) *)
