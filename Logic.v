@@ -662,13 +662,14 @@ Proof.
 Theorem not_eq_beq_false : forall n m : nat,
      n <> m ->
      beq_nat n m = false.
-Proof. 
+Proof. Admitted.
+(* See below for many attempts at this. *)
 (*  intros n m.
   unfold not in H.
   destruct (beq_nat n m ).
   Case "true". apply ex_falso_quodlibet. apply H.
   unfold beq_nat.*)
-  
+(*  
   induction n as [|n'].
   Case "0".
     intros m H.
@@ -716,10 +717,8 @@ Proof.
   Case "n = S n'".
     induction m as [|m'].
     SCase "m = 0". reflexivity.
-    SCase "m = S m'". simpl. destruct (beq_nat n' m'). apply ex_falso_quodlibet. (* TODO *)
-    
-    
-
+    SCase "m = S m'". simpl. destruct (beq_nat n' m'). apply ex_falso_quodlibet.
+ 
   remember (beq_nat n m).
   unfold not in H.
   destruct b.
@@ -750,7 +749,7 @@ Proof.
     SCase "S m'".
       unfold beq_nat.
       inversion H.
-      Admitted.
+*)
 (* TODO *)
 (** [] *)
 
