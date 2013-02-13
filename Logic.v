@@ -1234,7 +1234,7 @@ End R.
     asserts that [P] is true for every element of the list [l]. *)
 
 Inductive all (X : Type) (P : X -> Prop) : list X -> Prop :=
-| all_nil  : forall (l:list X), all X P []
+| all_nil  : all X P []
 | all_cons : forall (x:X) (l:list X), (P x) -> (all X P l) -> all X P (x::l).
 
 (** Recall the function [forallb], from the exercise
@@ -1254,15 +1254,30 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     are not captured by your specification? *)
 
 Theorem all_forallb :
-  forall (X:Type) (l:list X) (P : X -> Prop) (t : X -> bool),
-    (forall x:X, (P x) <-> (t x = true)) ->
-    (forallb t l = true <-> all X P l).
-Proof.
-  intros X l P t H.
+  forall (X:Type) (l:list X) (P : X -> Prop) (p : X -> bool),
+    (forall x:X, (P x) <-> (p x = true)) ->
+    (forallb p l = true <-> all X P l).
+Proof. Admitted.
+(* Also many attempts *)
+(*  intros X l P p H.
   split.
   Case "->".
     intros H1.
-    Admitted.
+    induction l as [|h t].
+    SCase "[]". apply all_nil.
+    SCase "h::t".
+      apply all_cons.
+      split 
+      simpl in H1.
+      apply H.
+      rewrite <- H1.
+      destruct (p h).
+      SSCase "p h = true". simpl.
+      SSCase "p h = false".
+        inversion H1.
+        apply IHt.
+        simpl in H1.
+*)
 (* TODO *)
 (** [] *)
 
