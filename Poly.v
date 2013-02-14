@@ -137,6 +137,8 @@ Fixpoint rev (X:Type) (l:list X) : list X :=
   | cons h t => snoc X (rev X t) h
   end.
 
+
+
 Example test_rev1 :
     rev nat (cons nat 1 (cons nat 2 (nil nat)))
   = (cons nat 2 (cons nat 1 (nil nat))).
@@ -167,14 +169,12 @@ Inductive grumble (X:Type) : Type :=
       - [e mumble (b c 0)]
       - [e bool (b c 0)]
       - [c] 
-
-Answer:
+(* SOLUTION: *)
       - [d mumble (b a 5)]
       - [d bool (b a 5)]
-      - [e bool true]
+      - [e bool true] 
       - [e mumble (b c 0)]
-      - [c] 
-*)
+[] *)
 
 
 (** **** Exercise: 2 stars (baz_num_elts) *)
@@ -184,9 +184,15 @@ Inductive baz : Type :=
    | x : baz -> baz
    | y : baz -> bool -> baz.
 
-(** How _many_ elements does the type [baz] have? *)
-(* FILL IN HERE *)
-(* [None] *)
+(** How _many_ elements does the type [baz] have? 
+(* SOLUTION: *)
+
+   None!  In order to create an element of type [baz], we would need
+   to use one of the two constructors [x] and [y]; but both of these
+   require a [baz] as an argument!  So this definition cannot "get off
+   the ground": in order to create a [baz] we would need to already
+   have one.
+[] *)
 
 End MumbleBaz.
 
@@ -352,6 +358,10 @@ Notation "x ++ y" := (app x y)
 
 Definition list123''' := [1, 2, 3].
 
+
+
+
+
 (* ###################################################### *)
 (** *** Exercises: Polymorphic Lists *)
 
@@ -361,51 +371,56 @@ Definition list123''' := [1, 2, 3].
     and complete the proofs below. *)
 
 Fixpoint repeat (X : Type) (n : X) (count : nat) : list X :=
+  (* SOLUTION: *)
   match count with
-    | O   => []
-    | S c => n :: repeat X n c
+  | O => nil
+  | S count' => cons n (repeat _ n count')
   end.
 
 Example test_repeat1:
   repeat bool true 2 = cons true (cons true nil).
-reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ 
 Theorem nil_app : forall X:Type, forall l:list X,
   app [] l = l.
 Proof.
-  intros. reflexivity. Qed.
+  (* SOLUTION: *)
+   reflexivity.  Qed.
 
 Theorem rev_snoc : forall X : Type,
                      forall v : X,
                      forall s : list X,
   rev (snoc s v) = v :: (rev s).
 Proof.
-  intros. induction s as [| h t].
-  Case "s = []". reflexivity.
-  Case "s = h::t".
-    simpl.
-    rewrite -> IHt.
-    reflexivity. Qed.
+  (* SOLUTION: *)
+  intros X v s. induction s as [| v' s'].
+  Case "s = []".
+    reflexivity.
+  Case "s = v' :: s'".
+    simpl. rewrite -> IHs'. reflexivity.  Qed.
 
 Theorem rev_involutive : forall X : Type, forall l : list X,
   rev (rev l) = l.
 Proof.
-  intros. induction l as [| h t].
-  Case "s = []". reflexivity.
-  Case "s = h::t".
-    simpl. 
-    rewrite -> rev_snoc.
-    rewrite -> IHt.
-    reflexivity. Qed.
+(* SOLUTION: *)
+  intros X l. induction l as [| n l'].
+  Case "l = nil".
+    reflexivity.
+  Case "l = cons".
+    simpl. rewrite -> rev_snoc. rewrite -> IHl'. reflexivity.  Qed.
 
 Theorem snoc_with_append : forall X : Type,
                          forall l1 l2 : list X,
                          forall v : X,
   snoc (l1 ++ l2) v = l1 ++ (snoc l2 v).
 Proof.
-  intros. induction l1 as [| h t].
-  Case "s = []". reflexivity.
-  Case "s = h::t". simpl. rewrite -> IHt. reflexivity. Qed.
+  (* SOLUTION: *)
+  intros X l1 l2 v. induction l1 as [| v1 l1'].
+  Case "l1 = []".
+    reflexivity.
+  Case "l1 = v1 :: l1'".
+    simpl. rewrite -> IHl1'. reflexivity.  Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -464,17 +479,6 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
   | (x::tx, y::ty) => (x,y) :: (combine tx ty)
   end.
 
-(** Indeed, when no ambiguity results, we can even drop the enclosing
-    parens: *)
-
-Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
-           : list (X*Y) :=
-  match lx,ly with
-  | [],_ => []
-  | _,[] => []
-  | x::tx, y::ty => (x,y) :: (combine' tx ty)
-  end.
-
 (** **** Exercise: 1 star, optional (combine_checks) *)
 (** Try answering the following questions on paper and
     checking your answers in coq:
@@ -493,17 +497,22 @@ Fixpoint combine' {X Y : Type} (lx : list X) (ly : list Y)
     Uncomment the material below and fill in the definition of
     [split].  Make sure it passes the given unit tests. *)
 
-
-Fixpoint split {X Y:Type} (l : list (X*Y)) : (list X * list Y) :=
+Fixpoint split
+  (* SOLUTION: *)
+           {X Y : Type} (l : list (X*Y))
+           : (list X) * (list Y) :=
   match l with
-    | []   => ([], [])
-    | (x,y)::t => match split t with (xs, ys) => (x::xs, y::ys) end
+  | [] =>
+      ([], [])
+  | cons (x,y) t =>
+      match split t with
+        (lx,ly) => (x::lx, y::ly)
+      end
   end.
 
 Example test_split:
   split [(1,false),(2,false)] = ([1,2],[false,false]).
 Proof. reflexivity.  Qed.
-
 (** (If you're reading the HTML version of this file, note that
     there's an unresolved typesetting problem in the example: several
     square brackets are missing.  Refer to the .v file for the correct
@@ -547,9 +556,10 @@ Proof. reflexivity.  Qed.
     passes the unit tests below. *)
 
 Definition hd_opt {X : Type} (l : list X)  : option X :=
+  (* SOLUTION: *)
   match l with
-    | []   => None
-    | h::t => Some h
+  | [] => None
+  | a :: l' => Some a
   end.
 
 (** Once again, to force the implicit arguments to be explicit,
@@ -558,10 +568,12 @@ Definition hd_opt {X : Type} (l : list X)  : option X :=
 Check @hd_opt.
 
 Example test_hd_opt1 :  hd_opt [1,2] = Some 1.
-reflexivity. Qed.
-Example test_hd_opt2 :   hd_opt  [[1],[2]]  = Some [1].
-reflexivity. Qed.
-(** [] *)
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ Example test_hd_opt2 :   hd_opt  [[1],[2]]  = Some [1].
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ (** [] *)
 
 (* ###################################################### *)
 (** * Functions as Data *)
@@ -651,7 +663,10 @@ Definition prod_curry {X Y Z : Type}
 
 Definition prod_uncurry {X Y Z : Type}
   (f : X -> Y -> Z) (p : X * Y) : Z :=
-  match p with (x, y) => f x y end.
+  (* SOLUTION: *)
+    match p with
+      (x,y) => f x y
+    end.
 
 (** (Thought exercise: before running these commands, can you
     calculate the types of [prod_curry] and [prod_uncurry]?) *)
@@ -662,18 +677,18 @@ Check @prod_uncurry.
 Theorem uncurry_curry : forall (X Y Z : Type) (f : X -> Y -> Z) x y,
   prod_curry (prod_uncurry f) x y = f x y.
 Proof.
-  intros.
-  compute.
-  reflexivity. Qed.
+  (* SOLUTION: *)
+  intros X Y Z f x y.
+  reflexivity.  Qed.
 
 Theorem curry_uncurry : forall (X Y Z : Type)
                                (f : (X * Y) -> Z) (p : X * Y),
   prod_uncurry (prod_curry f) p = f p.
 Proof.
-  intros.
-  destruct p.
-  compute. 
-  reflexivity. Qed.
+  (* SOLUTION: *)
+  intros X Y Z f p.
+  destruct p as [x y].
+  reflexivity.  Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -759,16 +774,19 @@ Proof. reflexivity.  Qed.
     7. *)
 
 Definition filter_even_gt7 (l : list nat) : list nat :=
-  filter (fun n => andb (evenb n) (negb (ble_nat n 7))) l.
-
+  (* SOLUTION: *)
+  filter (fun n => andb (evenb n) (blt_nat 7 n)) l.
+  
 Example test_filter_even_gt7_1 :
   filter_even_gt7 [1,2,6,9,10,3,12,8] = [10,12,8].
-reflexivity. Qed.
-
+ (* SOLUTION: *)
+Proof. reflexivity. Qed.
+ 
 Example test_filter_even_gt7_2 :
   filter_even_gt7 [5,2,6,19,129] = [].
-reflexivity. Qed.
-(** [] *)
+ (* SOLUTION: *)
+Proof. reflexivity. Qed.
+ (** [] *)
 
 (** **** Exercise: 3 stars (partition) *)
 (** Use [filter] to write a Coq function [partition]:
@@ -785,12 +803,15 @@ reflexivity. Qed.
 
 Definition partition {X : Type} (test : X -> bool) (l : list X)
                      : list X * list X :=
+(* SOLUTION: *)
   (filter test l, filter (fun x => negb (test x)) l).
 
 Example test_partition1: partition oddb [1,2,3,4,5] = ([1,3,5], [2,4]).
-reflexivity. Qed.
+(* SOLUTION: *)
+Proof. reflexivity. Qed.
 Example test_partition2: partition (fun x => false) [5,9,0] = ([], [5,9,0]).
-reflexivity. Qed.
+(* SOLUTION: *)
+Proof. reflexivity. Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -830,6 +851,17 @@ Example test_map3:
 Proof. reflexivity.  Qed.
 
 
+Theorem map_snoc : forall (X Y : Type)
+                          (f : X -> Y) (x : X) (l : list X),
+  map f (snoc l x) = snoc (map f l) (f x).
+Proof.
+  intros X Y f x l. induction l as [| v l'].
+  Case "l = []".
+    reflexivity.
+  Case "l = v :: l'".
+    simpl. rewrite -> IHl'. reflexivity.  Qed.
+
+
 (** **** Exercise: 3 stars (map_rev) *)
 (** Show that [map] and [rev] commute.  You may need to define an
     auxiliary lemma. *)
@@ -837,21 +869,12 @@ Proof. reflexivity.  Qed.
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
   map f (rev l) = rev (map f l).
 Proof.
-  intros.
-  induction l as [| h t].
-  Case "l = []". reflexivity. 
-  Case "l = h::t".
-    simpl.
-    rewrite <- IHt. 
-    assert (H: forall (g:X -> Y) (x:X) (xs:list X),
-                 map g (snoc xs x) = snoc (map g xs) (g x)).
-    SCase "Assertion proof".
-      intros.
-      induction xs as [| h' t'].
-      SSCase "xs = []". reflexivity.
-      SSCase "xs = h::t". simpl. rewrite <- IHt'. reflexivity.
-    rewrite <- H.
-    reflexivity. Qed.
+  (* SOLUTION: *)
+  intros X Y f l. induction l as [| v l'].
+  Case "l = []".
+    reflexivity.
+  Case "l = v :: l'".
+    simpl. rewrite -> map_snoc. rewrite -> IHl'. reflexivity.  Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars (flat_map) *)
@@ -866,16 +889,18 @@ Proof.
 
 Fixpoint flat_map {X Y:Type} (f:X -> list Y) (l:list X)
                    : (list Y) :=
+  (* SOLUTION: *)
   match l with
-    | []    => []
-    | x::xs => (f x) ++ flat_map f xs
+  | []     => []
+  | h :: t => (f h) ++ (flat_map f t)
   end.
 
 Example test_flat_map1:
   flat_map (fun n => [n,n,n]) [1,5,4]
   = [1, 1, 1, 5, 5, 5, 4, 4, 4].
-reflexivity. Qed.
-(** [] *)
+ (* SOLUTION: *)
+Proof. reflexivity.  Qed.
+ (** [] *)
 
 (** Lists are not the only inductive type that we can write a
     [map] function for.  Here is the definition of [map] for the
@@ -937,15 +962,13 @@ Proof. reflexivity. Qed.
 Example fold_example3 : fold app  [[1],[],[2,3],[4]] [] = [1,2,3,4].
 Proof. reflexivity. Qed.
 
+
 (** **** Exercise: 1 star, advanced (fold_types_different) *)
 (** Observe that the type of [fold] is parameterized by _two_ type
     variables, [X] and [Y], and the parameter [f] is a binary operator
     that takes an [X] and a [Y] and returns a [Y].  Can you think of a
     situation where it would be useful for [X] and [Y] to be
     different? *)
-
-(* Sure -- if we wanted to, say, count all the elements in a list of lists, then
-   the X would be a list but Y would be a number. *)
 
 (* ###################################################### *)
 (** ** Functions For Constructing Functions *)
@@ -1004,8 +1027,10 @@ Proof. reflexivity. Qed.
 
 Theorem override_example : forall (b:bool),
   (override (constfun b) 3 true) 2 = b.
-Proof. intros. reflexivity. Qed.
-
+Proof.
+  (* SOLUTION: *)
+  intros b.
+  simpl. reflexivity.  Qed.
 (** [] *)
 
 (** We'll use function overriding heavily in parts of the rest of the
@@ -1070,11 +1095,11 @@ Theorem override_neq : forall {X:Type} x1 x2 k1 k2 (f : nat->X),
   beq_nat k2 k1 = false ->
   (override f k2 x2) k1 = x1.
 Proof.
-  intros.
+  (* SOLUTION: *)
+  intros X x1 x2 k1 k2 f. intros Hx1 Hneq.
   unfold override.
-  rewrite -> H0.
-  rewrite -> H.
-  reflexivity. Qed.
+  rewrite -> Hneq.
+  apply Hx1.  Qed.
 (** [] *)
 
 (** As the inverse of [unfold], Coq also provides a tactic
@@ -1098,16 +1123,14 @@ Proof. reflexivity. Qed.
 
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
+(* SOLUTION: *)
 Proof.
-  intros.
-  induction l as [| h t].
+  induction l as [| x l'].
   Case "l = []". reflexivity.
-  Case "l = h::t".
-    simpl.
-    rewrite <- IHt.
-    unfold fold_length.
-    simpl.
-    reflexivity. Qed.
+  Case "l = x :: l'". simpl. 
+    unfold fold_length. simpl.
+    rewrite <- IHl'.
+    reflexivity.  Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (fold_map) *)
@@ -1115,43 +1138,55 @@ Proof.
     below. *)
 
 Definition fold_map {X Y:Type} (f : X -> Y) (l : list X) : list Y :=
-  fold (fun x ys => (f x) :: ys) l [].
+(* SOLUTION: *)
+  fold (fun x l' => f x :: l') l nil.
 
 (** Write down a theorem in Coq stating that [fold_map] is correct,
     and prove it. *)
-Theorem fold_map_correct :
-  forall X Y (f:X -> Y) (l:list X),
-    fold_map f l = map f l.
+
+(* SOLUTION: *)
+Theorem fold_map_correct : forall X Y (f : X -> Y) (l : list X),
+  fold_map f l = map f l.
 Proof.
-  intros.
-  induction l as [| h t].
+  induction l as [| x l'].
   Case "l = []". reflexivity.
-  Case "l = h::t".
-    simpl.
-    rewrite <- IHt.
+  Case "l = x :: l'". simpl.
     unfold fold_map.
-    simpl.
-    reflexivity. Qed.
-    
+    simpl. rewrite <- IHl'.
+    reflexivity.  Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced (index_informal) *)
-(** Recall the definition of the [index] function: 
+(** Recall the definition of the [index] function:
    Fixpoint index {X : Type} (n : nat) (l : list X) : option X :=
      match l with
      | [] => None 
      | a :: l' => if beq_nat n O then Some a else index (pred n) l'
      end.
    Write an informal proof of the following theorem:
+   forall X n l, length l = n -> @index X (S n) l = None.
+(* SOLUTION: *)
+   Theorem: For all types [X], natural numbers [n] and lists [l], 
+   if [length l = n] then [index X (S n) l = None].
 
-   We can do it inductively on l:
-   In the base case, [l = []] implies [length n = 0] (from previous results), and
-   [index] will immediately return `None`.
+   Proof: By induction on [l]. There are two cases to consider:
 
-   Then, assuming the inductive hypothesis, we see that for [l = h::t],
-   and knowing that [length l = n], [index] will decrease on [n] until l = [h].
-   Since we're using n+1, however, it will decrease again and find the empty
-   list, which returns None. *)
+     - If [l = nil], we must show [index (S n) [] = None].  This follows
+       immediately from the definition of [index].
+
+     - Otherwise, [l = cons x :: l'] for some [x] and [l'], and the
+       induction hypothesis tells us that [length l' = n' => index (S
+       n') l = None] for any [n'].
+
+       Let [n] be a number such that [length l = n].  We must show
+       that [index (S n) (x :: l') = None].  By the definition of
+       [index], it is enough to show [index n l' = None].
+
+       But we know that [n = length l = length (x :: l') = S (length l')].
+       So it's enough to show [index (S (length l')) l' = None], which
+       follows directly from the induction hypothesis, picking [length l']
+       for [n'].
+*)
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (church_numerals) *)
@@ -1197,66 +1232,60 @@ Definition three : nat := @doit3times.
 (** Successor of a natural number *)
 
 Definition succ (n : nat) : nat :=
-  fun (X:Type) (f:X -> X) (x:X) => f (n X f x).
-
+  (* SOLUTION: *)
+  fun X f x => f (n X f x).
+  
 Example succ_1 : succ zero = one.
-Proof. reflexivity. Qed.
- 
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example succ_2 : succ one = two.
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example succ_3 : succ two = three.
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 (** Addition of two natural numbers *)
 
 Definition plus (n m : nat) : nat :=
-  fun (X:Type) (f:X -> X) (x:X) => n X f (m X f x).
-
+  (* SOLUTION: *)
+  fun X f x => n X f (m X f x).
+  
 Example plus_1 : plus zero one = one.
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example plus_2 : plus two three = plus three two.
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example plus_3 :
   plus (plus two two) three = plus one (plus three three).
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 (** Multiplication *)
 
 Definition mult (n m : nat) : nat := 
-  fun (X:Type) (f:X -> X) (x:X) => n X (m X f) x.
-
+  (* SOLUTION: *)
+  fun X f x => n X (m X f) x.
+  
 Example mult_1 : mult one one = one.
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example mult_2 : mult zero (plus three three) = zero.
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example mult_3 : mult two three = plus three three.
-Proof. reflexivity. Qed.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 (** Exponentiation *)
 
-(** Hint: polymorphism plays a crucial role here. *)
+(** Hint: Polymorphism plays a crucial role here. However, choosing
+    the right type to iterate over can be tricky. If you hit a
+    "Universe inconsistency" error, try iterating over a different
+    type: [nat] itself is usually problematic. *)
 
 Definition exp (n m : nat) : nat :=
-  admit.
-(*  fun (X:Type) (f:X -> X) (x:X) => (m nat (mult n) n) X f x.*)
-
+  (* SOLUTION: *)
+  fun X f x => m (X -> X) (n X) f x.
+  
 Example exp_1 : exp two two = plus two two.
-Proof. (* FILL IN HERE *) Admitted.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example exp_2 : exp three two = plus (mult two (mult two two)) one.
-Proof. (* FILL IN HERE *) Admitted.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 Example exp_3 : exp three zero = one.
-Proof. (* FILL IN HERE *) Admitted.
-
+Proof. (* SOLUTION: *) reflexivity. Qed. 
 End Church.
 
 (** [] *)
 
-(* $Date: 2013-01-23 16:48:29 -0500 (Wed, 23 Jan 2013) $ *)
+(* $Date: 2013-02-06 20:14:06 -0500 (Wed, 06 Feb 2013) $ *)
 
