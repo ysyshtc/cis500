@@ -70,7 +70,10 @@ Proof.
 Theorem plus_one_r' : forall n:nat, 
   n + 1 = S n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  apply nat_ind.
+  Case "O". reflexivity.
+  Case "S". simpl. intros n IHn. rewrite -> IHn. reflexivity.  Qed.
 (** [] *)
 
 (** The induction principles that Coq generates for other datatypes
@@ -182,7 +185,9 @@ Inductive byntree : Type :=
     Give an [Inductive] definition of [ExSet]: *)
 
 Inductive ExSet : Type :=
-  (* FILL IN HERE *)
+  (* SOLUTION: *)
+  | con1 : bool -> ExSet
+  | con2 : nat -> ExSet -> ExSet
 .
 (** [] *)
 
@@ -231,6 +236,11 @@ Check tree_ind.
                forall n : nat, P (constr3 X m n)) ->
             forall m : mytype X, P m                   
 *) 
+Inductive mytype (X:Type) : Type :=
+  | constr1 : X -> mytype X
+  | constr2 : nat -> mytype X
+  | constr3 : mytype X -> nat -> mytype X.
+Check mytype_ind.
 (** [] *)
 
 (** **** Exercise: 1 star, optional (foo) *)
@@ -244,6 +254,11 @@ Check tree_ind.
                (forall n : nat, P (f1 n)) -> P (quux X Y f1)) ->
              forall f2 : foo X Y, P f2       
 *) 
+Inductive foo (X:Type) (Y:Type) : Type :=
+  | bar : X -> foo X Y
+  | baz : Y -> foo X Y
+  | quux : (nat -> foo X Y) -> foo X Y.
+Check foo_ind.
 (** [] *)
 
 (** **** Exercise: 1 star, optional (foo') *)
@@ -264,6 +279,14 @@ Inductive foo' (X:Type) : Type :=
              forall f : foo' X, ________________________
 *)
 
+(**
+foo'_ind :
+   forall (X : Type) (P : foo' X -> Prop),
+        (forall (l : list X) (f : foo' X), 
+              P f -> P (C1 X l f))  ->
+        P (C2 X)  ->
+        forall f1 : foo' X, P f1
+*)
 (** [] *)
 
 (* ##################################################### *)
@@ -694,7 +717,9 @@ Inductive p : (tree nat) -> nat -> Prop :=
 (** Describe, in English, the conditions under which the
    proposition [p t n] is provable. 
 
-   (* FILL IN HERE *)
+   (* SOLUTION: *) 
+   [p t n] is provable when t is a tree with n leaves (by c1, c2)
+   or fewer (by c3).
 *)
 (** [] *)
 
@@ -781,7 +806,30 @@ Proof.
     induction, and state the theorem and proof in terms of this
     defined proposition.  *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Definition P_assoc (n m p : nat) : Prop :=
+  n + (m + p) = (n + m) + p.
+
+Theorem plus_assoc_P : forall m p n : nat,
+  P_assoc n m p.
+Proof.
+  intros m p. apply nat_ind.
+  Case "n = O". unfold P_assoc. reflexivity.
+  Case "n = S n'".
+    unfold P_assoc. simpl. intros n IHn.
+    rewrite IHn. reflexivity.  Qed.
+
+Definition P_comm (n m : nat) : Prop :=
+  n + m = m + n.
+
+Theorem plus_comm_P : forall m n : nat,
+  P_comm n m.
+Proof.
+  intros m. apply nat_ind.
+  Case "n = 0". unfold P_comm. rewrite -> plus_0_r. reflexivity.
+  Case "n = S n'". 
+    unfold P_comm. simpl. intros n IHn.
+    rewrite IHn. rewrite <- plus_n_Sm. reflexivity.  Qed.
 (** [] *)
 
 
@@ -803,6 +851,12 @@ Proof.
           (________________________________________________) ->
            ________________________________________________
 
+   foo_ind
+        : forall (X Y : Set) (P : foo X Y -> Prop),
+          (forall  x : X, P (foo1 X Y x)) ->
+          (forall  y : Y, P (foo2 X Y y)) ->
+          (forall f1 : foo X Y, P f1 -> P (foo3 X Y f1)) ->
+          forall f2 : foo X Y, P f2
 *)
 (** [] *)
 
@@ -820,6 +874,10 @@ Proof.
      | bar2 : ________________________________________
      | bar3 : ________________________________________.
 
+   Inductive bar : Set :=
+     | bar1 : nat -> bar
+     | bar2 : bar -> bar
+     | bar3 : bool -> bar -> bar.
 *)
 (** [] *)
 
@@ -844,6 +902,14 @@ Proof.
          forall (l : list X) (n : nat), no_longer_than X l n -> 
            ____________________
 
+  no_longer_than_ind
+       : forall (X : Set) (P : list X -> nat -> Prop),
+         (forall n : nat, P [] n) ->
+         (forall (x : X) (l : list X) (n : nat),
+          no_longer_than X l n -> P l n -> P (x :: l) (S n)) ->
+         (forall (l : list X) (n : nat),
+          no_longer_than X l n -> P l n -> P l (S n)) ->
+         forall (l : list X) (n : nat), no_longer_than X l n -> P l n
 *)
 (** [] *)
 
@@ -1075,5 +1141,5 @@ Qed.
     scratch.  Only lemmas whose proofs pass the type-checker can be
     used in further proof developments.  *)
 
-(* $Date: 2013-02-06 20:55:20 -0500 (Wed, 06 Feb 2013) $ *)
+(* $Date: 2013-02-06 20:55:20 -0500 (Mer, 06 Feb 2013) $ *)
 

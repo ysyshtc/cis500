@@ -125,9 +125,9 @@ Definition preserved_by_S (P:nat->Prop) : Prop :=
     equivalent to [Peven n] otherwise. *)
 
 Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
-  fun n:nat =>
-    if oddb n then Podd n else Peven n.
-
+  (* SOLUTION: *)
+  fun n => if oddb n then Podd n else Peven n.
+  
 (** To test your definition, see whether you can prove the following
     facts: *)
 
@@ -137,38 +137,45 @@ Theorem combine_odd_even_intro :
     (oddb n = false -> Peven n) ->
     combine_odd_even Podd Peven n.
 Proof.
-  intros P1 P2 n H1 H2.
+  (* SOLUTION: *)
+  intros Podd Peven n Hodd Heven.
   unfold combine_odd_even.
   destruct (oddb n).
-  Case "oddb n = true".
-    apply H1. reflexivity.
-  Case "oddb n = false".
-    apply H2. reflexivity.
-Qed.
-
+  Case "oddn n = true".
+    apply Hodd. reflexivity.
+  Case "oddn n = false".
+    apply Heven. reflexivity. Qed.
+  
 Theorem combine_odd_even_elim_odd :
   forall (Podd Peven : nat -> Prop) (n : nat),
     combine_odd_even Podd Peven n ->
     oddb n = true ->
     Podd n.
 Proof.
-  intros P1 P2 n H1 H2.
-  unfold combine_odd_even in H1.
-  rewrite -> H2 in H1.
-  apply H1.
-Qed.
-
+  (* SOLUTION: *)
+  unfold combine_odd_even.
+  intros Podd Peven n H Hodd.
+  destruct (oddb n).
+  Case "oddb n = true".
+    apply H.
+  Case "oddb n = false".
+    inversion Hodd. Qed.
+  
 Theorem combine_odd_even_elim_even :
   forall (Podd Peven : nat -> Prop) (n : nat),
     combine_odd_even Podd Peven n ->
     oddb n = false ->
     Peven n.
 Proof.
-  intros P1 P2 n H1 H2.
-  unfold combine_odd_even in H1.
-  rewrite -> H2 in H1.
-  apply H1.
-Qed.
+  (* SOLUTION: *)
+  unfold combine_odd_even.
+  intros Podd Peven n H Heven.
+  destruct (oddb n).
+  Case "oddb n = true".
+    inversion Heven.
+  Case "oddb n = false".
+    apply H. Qed.
+  
 (** [] *)
 
 
@@ -185,16 +192,19 @@ Qed.
     [true_upto_n__true_everywhere] that makes
     [true_upto_n_example] work. *)
 
-(* 
 Fixpoint true_upto_n__true_everywhere
-(* FILL IN HERE *)
+(* SOLUTION: *)
+  (n:nat) (P:nat->Prop) : Prop :=
+  match n with
+  | 0 =>    (forall m, P m)
+  | S n' => (P (S n') -> true_upto_n__true_everywhere n' P)
+  end.
 
 Example true_upto_n_example :
     (true_upto_n__true_everywhere 3 (fun n => even n))
   = (even 3 -> even 2 -> even 1 -> forall m : nat, even m).
 Proof. reflexivity.  Qed.
-*)
 (** [] *)
 
-(* $Date: 2013-02-06 20:56:12 -0500 (Wed, 06 Feb 2013) $ *)
+(* $Date: 2013-02-06 21:18:41 -0500 (Mer, 06 Feb 2013) $ *)
 

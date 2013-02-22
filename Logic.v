@@ -108,7 +108,10 @@ Proof.
 Theorem proj2 : forall P Q : Prop, 
   P /\ Q -> Q.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros P Q H. 
+  inversion H as [HP HQ].
+  apply HQ.  Qed.
 (** [] *)
 
 Theorem and_commut : forall P Q : Prop, 
@@ -147,13 +150,12 @@ Theorem and_assoc : forall P Q R : Prop,
 Proof.
   intros P Q R H.
   inversion H as [HP [HQ HR]].
+(* SOLUTION: *)
   split.
-  Case "P /\ Q".
-    split.
-    SCase "P". apply HP.
-    SCase "Q". apply HQ.
-  Case "R". apply HR.
-Qed.
+    Case "left". split.
+      SCase "left". apply HP.
+      SCase "right". apply HQ.
+    Case "right". apply HR.  Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars (even__ev) *)
@@ -170,35 +172,27 @@ Theorem even__ev : forall n : nat,
   (even n -> ev n) /\ (even (S n) -> ev (S n)).
 Proof.
   (* Hint: Use induction on [n]. *)
-  intros n.
-  induction n as [|n'].
-  Case "0".
-    split.
-    SCase "left". intros. apply ev_0.
-    SCase "right".
-      intros H.
-      unfold even in H.
-      simpl in H.
-      inversion H.
-  Case "n+1".
-    inversion IHn' as [IHl IHr].
-    split.
-    SCase "left". apply IHr.
-    SCase "right". 
-      intros H.
-      apply ev_SS.
-      apply IHl.
-      unfold even.
-      unfold even in H. simpl in H.
-      apply H.
-Qed.
+  (* SOLUTION: *)
+  intros n. induction n as [| n' ].
+  Case "n = O". simpl. split.
+    SCase "left conjunct". intros eq. apply ev_0.
+    SCase "right conjunct". intros eq. inversion eq.
+  Case "n = S n'". split. 
+    SCase "left conjunct". intros eq. inversion IHn' as [Hn HSn].
+      apply HSn. apply eq.
+    SCase "right conjunct". intros eq. inversion IHn' as [Hn HSn].
+      apply ev_SS. unfold even in eq. simpl in eq. apply Hn. apply eq. Qed. 
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (conj_fact) *)
 (** Construct a proof object demonstrating the following proposition. *)
 
 Definition conj_fact : forall P Q R, P /\ Q -> Q /\ R -> P /\ R :=
-  (* FILL IN HERE *) admit.
+  (* SOLUTION: *)
+  fun P Q R HPQ HQR =>
+    match (HPQ,HQR) with
+    | (conj HP _, conj _ HR) => conj P R HP HR
+    end.
 (** [] *)
 
 (* ###################################################### *)
@@ -236,12 +230,21 @@ Proof.
 Theorem iff_refl : forall P : Prop, 
   P <-> P.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros P. split.
+    Case "->". intros H. apply H.
+    Case "<-". intros H. apply H.  Qed.
 
 Theorem iff_trans : forall P Q R : Prop, 
   (P <-> Q) -> (Q <-> R) -> (P <-> R).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros P Q R H G.
+  inversion H as [HAB HBA].
+  inversion G as [HBC HCB].
+  split.
+    Case "->". intros HP. apply HBC. apply HAB. apply HP.
+    Case "<-". intros HR. apply HBA. apply HCB. apply HR.  Qed.
 
 (** Hint: If you have an iff hypothesis in the context, you can use
     [inversion] to break it into two separate implications.  (Think
@@ -259,7 +262,8 @@ Proof.
 
 Definition beautiful_iff_gorgeous :
   forall n, beautiful n <-> gorgeous n :=
-  (* FILL IN HERE *) admit.
+  (* SOLUTION: *)
+  fun n => conj _ _ (beautiful__gorgeous n) (gorgeous__beautiful n). 
 (** [] *)
 
 (** Some of Coq's tactics treat [iff] statements specially, thus
@@ -331,7 +335,13 @@ Proof.
 (** Try to write down an explicit proof object for [or_commut] (without
     using [Print] to peek at the ones we already defined!). *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Definition or_commut'' : forall P Q, P \/ Q -> Q \/ P :=
+    fun (P Q : Prop) (H : P \/ Q) =>
+      match H with
+      | or_introl HP => or_intror Q P HP
+      | or_intror HQ => or_introl Q P HQ
+      end. 
 (** [] *)
 
 Theorem or_distributes_over_and_1 : forall P Q R : Prop,
@@ -349,24 +359,23 @@ Proof.
 Theorem or_distributes_over_and_2 : forall P Q R : Prop,
   (P \/ Q) /\ (P \/ R) -> P \/ (Q /\ R).
 Proof.
-  intros P Q R H.
-  inversion H as [[HP1 | HQ] [HP2 | HR]].
-  Case "left-left". left. apply HP1.
-  Case "left-right". left. apply HP1.
-  Case "right-left". left. apply HP2.
-  Case "right-right".
-    right.
-    split.
-    SCase "left". apply HQ.
-    SCase "left". apply HR.
-Qed.
-  (** [] *)
+  (* SOLUTION: *)
+  intros P Q R. intros H.
+  inversion H as [[HAl | HQ] [HAr | HR]].
+    Case "left,left". left. apply HAl.
+    Case "left,right". left. apply HAl.
+    Case "right,left". left. apply HAr.
+    Case "right,right". right. split. apply HQ. apply HR. Qed.
+(** [] *)
 
 (** **** Exercise: 1 star, optional (or_distributes_over_and) *)
 Theorem or_distributes_over_and : forall P Q R : Prop,
   P \/ (Q /\ R) <-> (P \/ Q) /\ (P \/ R).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros P Q R. split.
+    Case "->". apply or_distributes_over_and_1.
+    Case "<-". apply or_distributes_over_and_2.  Qed.
 (** [] *)
 
 (* ################################################### *)
@@ -404,17 +413,48 @@ Proof.
 Theorem andb_false : forall b c,
   andb b c = false -> b = false \/ c = false.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros b c H.
+  destruct b.
+  Case "b=true".
+    destruct c.
+    SCase "c=true".
+      simpl in H. inversion H.
+    SCase "c=false".
+      right. reflexivity.
+  Case "b=false".
+    left. reflexivity.  Qed.
 
 Theorem orb_true : forall b c,
   orb b c = true -> b = true \/ c = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros b c H.
+  destruct b.
+  Case "b=true".
+    left. reflexivity.
+  Case "b=false".    
+    destruct c.
+    SCase "c=true".
+      right. reflexivity.
+    SCase "c=false".
+      simpl in H. inversion H.  Qed.
 
 Theorem orb_false : forall b c,
   orb b c = false -> b = false /\ c = false.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros b c H.
+  destruct b.
+  Case "b=true".
+    inversion H.
+    split. reflexivity.
+  Case "b=false".
+    destruct c.
+    SCase "c=true".
+      inversion H.
+    SCase "c=false".
+      reflexivity.  Qed.
 (** [] *)
 
 (* ################################################### *)
@@ -480,7 +520,9 @@ Proof.
     intution is that [True] should be a proposition for which it is
     trivial to give evidence.) *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Inductive True : Prop :=
+ I : True.
 (** [] *)
 
 (** However, unlike [False], which we'll use extensively, [True] is
@@ -535,7 +577,10 @@ Proof.
    _Theorem_: [P] implies [~~P], for any proposition [P].
 
    _Proof_:
-(* FILL IN HERE *)
+(* SOLUTION: *) Let a proposition [P] be given, and suppose we have
+   evidence for [P].  We must show [~~P] -- i.e., [~P -> False], so
+   suppose [~P] as well.  Then we have both [P] and [~P], a
+   contradiction, so [~~P] holds.
    []
 *)
 
@@ -543,28 +588,28 @@ Proof.
 Theorem contrapositive : forall P Q : Prop,
   (P -> Q) -> (~Q -> ~P).
 Proof.
-  intros P Q H HQ HP.
-  apply H in HP.
-  apply HQ in HP.
-  inversion HP.
-Qed.
+  (* SOLUTION: *)
+  intros P Q H HNotB HP.
+  apply HNotB.  apply H. apply HP.  Qed.
 (** [] *)
 
 (** **** Exercise: 1 star (not_both_true_and_false) *)
 Theorem not_both_true_and_false : forall P : Prop,
   ~ (P /\ ~P).
 Proof. 
-  intros P H.
-  apply contradiction_implies_anything with (Q:=False) in H.
-  apply H.
-Qed.
+  (* SOLUTION: *)
+  intros P H. inversion H as [HP HNA]. apply HNA. apply HP.  Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, advanced (informal_not_PNP) *)
 (** Write an informal proof (in English) of the proposition [forall P
     : Prop, ~(P /\ ~P)]. *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+(* _Proof_: Suppose, for some [P], that [(P /\ ~P)] holds.  Recall
+  that [~P] is defined as [P -> False].  Given [P] and [P -> False],
+  we can prove [False], so [(P /\ ~P) -> False], i.e., [~(P /\ ~P)].
+*)
 (** [] *)
 
 Theorem five_not_even :  
@@ -582,15 +627,10 @@ Theorem ev_not_ev_S : forall n,
   ev n -> ~ ev (S n).
 Proof. 
   unfold not. intros n H. induction H. (* not n! *)
-  Case "0".
-    intros H1.
-    inversion H1.
-  Case "SSn".
-    intros Hn.
-    inversion Hn.
-    apply IHev in H1.
-    apply H1.
-Qed.
+  (* SOLUTION: *)
+    Case "ev_0". intros H. inversion H.
+    Case "ev_SS". intros G. inversion G as [| n' HevSn Heqn'].
+      apply IHev. apply HevSn.  Qed.
 (** [] *)
 
 (** Note that some theorems that are true in classical logic are _not_
@@ -627,7 +667,128 @@ Definition de_morgan_not_and_not := forall P Q:Prop,
 Definition implies_to_or := forall P Q:Prop, 
   (P->Q) -> (~P\/Q). 
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Lemma ito__em :
+  implies_to_or -> excluded_middle.
+Proof.
+  unfold implies_to_or, excluded_middle.
+  intros Hito P.
+  apply or_commut.
+  apply Hito.
+  intros HP. apply HP.
+Qed.
+
+Lemma em__ito :
+  excluded_middle -> implies_to_or.
+Proof.
+  unfold implies_to_or, excluded_middle.
+  intros Hem P Q H.
+  assert (P \/ ~P) by apply Hem.
+  inversion H0 as [HP | HNP].
+    Case "P". right. apply H. apply HP.
+    Case "~P". left. apply HNP.
+Qed.
+
+Lemma em__demorgan :
+  excluded_middle -> de_morgan_not_and_not.
+Proof.
+  unfold excluded_middle, de_morgan_not_and_not.
+  intros Hem P Q H.
+  assert (P \/ ~P) by apply Hem.
+  inversion H0 as [HP | HNP].
+    Case "P".
+      left. apply HP.
+    Case "~P".
+      assert (Q \/ ~Q) by apply Hem.
+      inversion H1 as [HQ | HNQ].
+      SCase "Q".
+        right. apply HQ.
+      SCase "~Q".
+        apply ex_falso_quodlibet. apply H.
+        split. apply HNP. apply HNQ.
+Qed.
+
+Lemma demorgan__em :
+  de_morgan_not_and_not -> excluded_middle.
+Proof.
+  unfold de_morgan_not_and_not, excluded_middle.
+  intros Hdm P.
+  apply Hdm.
+  unfold not. intros Hcontra.
+  inversion Hcontra as [HNP HNNP].
+  apply HNNP. apply HNP.
+Qed.
+
+Lemma em__classic :
+  excluded_middle -> classic.
+Proof.
+  unfold excluded_middle, classic, not.
+  intros Hem P.
+  assert (P \/ (P -> False)) by apply Hem.
+  inversion H as [HP | HNP].
+    Case "P". intros H'. apply HP.
+    Case "~P". intros H'. apply H' in HNP. inversion HNP.
+Qed.
+
+Lemma classic__demorgan :
+  classic -> de_morgan_not_and_not.
+Proof.
+  unfold classic, de_morgan_not_and_not, not.
+  intros Hc P Q H.
+  apply Hc.
+  intros H2.
+  apply H.
+  split.
+    Case "left conjunct". intros HP. apply H2. left. apply HP.
+    Case "right conjunct". intros HQ. apply H2. right. apply HQ.
+Qed.
+
+(** The above suffices (along with [demorgan__em]), but we can also
+    prove it directly this way *)
+
+Lemma classic__em :
+  classic -> excluded_middle.
+Proof.
+  unfold classic, excluded_middle, not.
+  intros Hc P.
+  apply Hc.
+  intros H.
+  apply H.
+  right.
+    intros HP. apply H.
+    left. apply HP.
+Qed.
+  
+Lemma em__peirce : 
+  excluded_middle -> peirce.
+Proof.
+  unfold excluded_middle, peirce.
+  intros Hem P Q H.
+  assert (P \/ ~P) by apply Hem.
+  inversion H0 as [HP | HNP].
+    Case "P". apply HP.
+    Case "~P". 
+      assert ((P -> Q) \/ ~(P -> Q)) by apply Hem.
+      inversion H1 as [HPQ | HNPQ].
+      SCase "P->Q". apply H. apply HPQ.
+      SCase "~(P->Q)". assert (P -> Q) as HPQ.
+        intros HP.
+        apply ex_falso_quodlibet. 
+        apply HNP. apply HP.
+      apply H. apply HPQ.
+Qed.
+
+Lemma peirce__em :
+  peirce -> excluded_middle.
+Proof.
+  unfold peirce, excluded_middle, not.
+  intros Hp P. 
+  apply Hp with False.
+  right.
+    intros HP. apply H.
+    left. apply HP.
+Qed. 
+
 (** [] *)
 
 (* ########################################################## *)
@@ -659,107 +820,30 @@ Proof.
 
 
 (** **** Exercise: 2 stars (not_eq_beq_false) *)
-Theorem not_eq_beq_false : forall n m : nat,
-     n <> m ->
-     beq_nat n m = false.
-Proof. Admitted.
-(* See below for many attempts at this. *)
-(*  intros n m.
-  unfold not in H.
-  destruct (beq_nat n m ).
-  Case "true". apply ex_falso_quodlibet. apply H.
-  unfold beq_nat.*)
-(*  
-  induction n as [|n'].
-  Case "0".
-    intros m H.
-    induction m as [|m'].
-    SCase "0". 
-      simpl. apply ex_falso_quodlibet. apply H. reflexivity.
-    SCase "m'".  reflexivity.
-  Case "n'".
-    intros m.
-    destruct m as [|m'].
-    SCase "0". reflexivity.
-    SCase "m'". 
-      simpl.
-      intros H.
-      destruct n'.
-      apply IHn'.
-      inversion H.
-      unfold not.
-      unfold not in H.
-      apply IHn'.
-      unfold not.
-      unfold not in H.
-      
-      simpl. apply IHn'.d
-      inversion H.
-      apply IHm'.
-      apply ex_falso_quodlibet.
-      apply H.
-      apply H.
-      unfold not in IHn'.
-      unfold not in IHm'.
-      apply IHn' in IHm'.
-
-
-  unfold not in H.
-  induction n as [|n'].
-  Case "n = 0".
-    destruct m as [|m'].
-    SCase "m = 0".
-      simpl.
-      apply ex_falso_quodlibet.
-      apply H.
-      reflexivity.
-    SCase "m = S m'". reflexivity.
-  Case "n = S n'".
-    induction m as [|m'].
-    SCase "m = 0". reflexivity.
-    SCase "m = S m'". simpl. destruct (beq_nat n' m'). apply ex_falso_quodlibet.
- 
-  remember (beq_nat n m).
-  unfold not in H.
-  destruct b.
-  apply ex_falso_quodlibet.
-  apply H.
-  induction n as [|n'].
-    inversion in Heqb.
-  unfold not in H.
-  apply H.
-  inversion b.
-(*  unfold not in H.
-  destruct (beq_nat n m).
-  apply ex_falso_quodlibet.
-  apply H.*)
-  unfold not in H.
-  destruct n as [|n'].
-  Case "n=0".
-    destruct m as [|m'].
-    SCase "m=0".
-      simpl.
-      apply ex_falso_quodlibet.
-      apply H.
-      reflexivity.
-    SCase "S m'". simpl. reflexivity.
-  Case "S n'".
-    destruct m as [|m'].
-    SCase "m=0". reflexivity.
-    SCase "S m'".
-      unfold beq_nat.
-      inversion H.
-*)
-(* TODO *)
+Theorem not_eq_beq_false : forall n n' : nat,
+     n <> n' ->
+     beq_nat n n' = false.
+Proof. 
+  (* SOLUTION: *)
+  intros n n' H. unfold not in H. 
+   remember (beq_nat n n') as e. destruct e. 
+   Case "e = true (contradictory)". 
+     apply ex_falso_quodlibet. apply H. 
+     apply beq_nat_eq in Heqe. apply Heqe. 
+   Case "e = false". 
+    reflexivity.  Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (beq_false_not_eq) *)
 Theorem beq_false_not_eq : forall n m,
   false = beq_nat n m -> n <> m.
 Proof.
-  intros n m H1 H2.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  (* SOLUTION: *) 
+  intros n m H Heq.
+  rewrite <- Heq in H. 
+  rewrite <- beq_nat_refl in H.
+  inversion H. Qed.
+  (** [] *)
 
 (* ############################################################ *)
 (** * Existential Quantification *)
@@ -850,12 +934,14 @@ Proof.
 ]] 
     mean? *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+(* There is some number whose successor is beautiful. *)
 
 (** Complete the definition of the following proof object: *)
 
 Definition p : ex nat (fun n => beautiful (S n)) :=
-(* FILL IN HERE *) admit.
+(* SOLUTION: *)
+  ex_intro nat (fun n => beautiful (S n)) 2 b_3.
 (** [] *)
 
 (** **** Exercise: 1 star (dist_not_exists) *)
@@ -865,11 +951,9 @@ Definition p : ex nat (fun n => beautiful (S n)) :=
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
 Proof. 
-  intros X P H1 H2.
-  inversion H2 as [w Hw].
-  apply Hw in H1.
-  apply H1.
-Qed.
+  (* SOLUTION: *)
+  intros X P H G. inversion G as [x Hx]. 
+  apply Hx. apply H.  Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (not_exists_dist) *)
@@ -881,7 +965,18 @@ Theorem not_exists_dist :
   forall (X:Type) (P : X -> Prop),
     ~ (exists x, ~ P x) -> (forall x, P x).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros EM X P H x.
+  assert (P x \/ ~ P x) as H1 by apply EM.
+  inversion H1 as [HPx | HNPx].
+  Case "P x".
+    apply HPx.
+  Case "~P x".
+    apply ex_falso_quodlibet. 
+    apply H.
+    apply ex_intro with (witness:=x).
+    apply HNPx.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars (dist_exists_or) *)
@@ -891,31 +986,17 @@ Proof.
 Theorem dist_exists_or : forall (X:Type) (P Q : X -> Prop),
   (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
 Proof.
-  intros X P Q.
-  split.
-  Case "->".
-    intros H.
-    inversion H as [w [HP | HQ]].
-    SCase "left".
-      left.
-      exists w.
-      apply HP.
-    SCase "right".
-      right.
-      exists w.
-      apply HQ.
-  Case "<-".
-    intros H.
-    inversion H as [[p HP] | [q HQ]].
-    SCase "left".
-      exists p.
-      left.
-      apply HP.
-    SCase "right".
-      exists q.
-      right.
-      apply HQ.
-Qed.
+   (* SOLUTION: *)
+  intros X P Q. split.
+  Case "->". intros H. inversion H as [x Hx].
+    inversion Hx as [HP | HQ].
+    SCase "P x". left. exists x. apply HP.
+    SCase "Q x". right. exists x. apply HQ.
+  Case "<-". intros H. inversion H as [HPx | HQx]. 
+    SCase "exists x, P x". inversion HPx as [x Hx]. exists x. 
+      left. apply Hx.
+    SCase "exists x, Q x". inversion HQx as [x Hx]. exists x. 
+      right. apply Hx.  Qed.
 (** [] *)
 
 (* Print dist_exists_or. *)
@@ -957,10 +1038,10 @@ Notation "x = y" := (eq _ x y)
 Lemma leibniz_equality : forall (X : Type) (x y: X), 
  x = y -> forall P : X -> Prop, P x -> P y.
 Proof.
-  intros X x y H P H3.
-  inversion H.
-  rewrite <- H1.
-  apply H3.
+(* SOLUTION: *)
+intros X x y H.
+induction H.
+intros P H. apply H.
 Qed.
 (** [] *)
 
@@ -1045,7 +1126,19 @@ End MyEquality.
 Lemma dist_and_or_eq_implies_and : forall P Q R,
 P /\ (Q \/ R) /\ Q = R -> P/\Q.
 Proof.
-(* FILL IN HERE *) Admitted.
+(* SOLUTION: *)
+intros P Q R H.
+inversion H. inversion H1.
+split. 
+Case "left". 
+apply H0. 
+Case "right".
+inversion H2. 
+SCase "left". apply H4. 
+SCase "right".
+inversion H3. (* rewrite H3. *)
+apply H4.
+Qed.
 (** [] *)
 
 (* ########################################################### *)
@@ -1167,15 +1260,17 @@ Inductive next_even (n:nat) : nat -> Prop :=
 (** Define an inductive binary relation [total_relation] that holds
     between every pair of natural numbers. *)
 
+(* SOLUTION: *)
 Inductive total_relation : nat -> nat -> Prop :=
-  alln : forall (n m:nat), total_relation n n.
-
+  tot : forall n m : nat, total_relation n m.
 (** [] *)
 
 (** **** Exercise: 2 stars (empty_relation) *)
 (** Define an inductive binary relation [empty_relation] (on numbers)
     that never holds. *)
-Inductive empty_relation : nat -> nat -> Prop :=. 
+
+(* SOLUTION: *)
+Inductive empty_relation : nat -> nat -> Prop := .
 (** [] *)
 
 (** **** Exercise: 3 stars (R_provability) *)
@@ -1203,14 +1298,18 @@ Inductive R : nat -> nat -> nat -> Prop :=
       would the set of provable propositions change?  Briefly (1
       sentence) explain your answer.
 
-[R 1 1 2] is provable: c2 <- c3 <- c1
-[R 2 2 6] is *not* provable
+(* SOLUTION: *)
+   - The first proposition is provable and the second is not.
+     The proof term for the first is:
+       (c3 _ _ _ (c2 _ _ _ c1)).
+   - Dropping [c5] would not change the set of provable
+     propositions.  [c4] and [c1] don't interact with [c5], since
+     they're already symmetric in [m] and [n]; [c2] followed by
+     [c5] is equivalent to [c3], and vice versa.
 
-The set of provable propositions *wouldn't* change if we dropped [c5],
-becuase [c5] is the identity - it doesn't chance the proposition it's
-given and so we can't do anything with it.
-
-It also wouldn't change to drop [c4], since that just recreates things we could've already done with [c1, c2].
+   - Dropping [c4] would not change the set of provable
+     propositions.  [c4] is equivalent to undoing an application
+     of [c2] and an application of [c3].
 []
 *)
 
@@ -1220,7 +1319,35 @@ It also wouldn't change to drop [c4], since that just recreates things we could'
     [n], and [o], and vice versa?
 *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Theorem R_plus: forall m n o, R m n o <-> m + n = o.
+Proof.
+  intros m n o. split.
+  Case "->". intros H. induction H.
+    SCase "c1". reflexivity.
+    SCase "c2". simpl. rewrite IHR. reflexivity.
+    SCase "c3". rewrite <- plus_n_Sm. rewrite IHR. reflexivity.
+    SCase "c4". simpl in IHR. rewrite <- plus_n_Sm in IHR.
+      inversion IHR. reflexivity.
+    SCase "c5". rewrite plus_comm. apply IHR.
+  Case "<-". generalize dependent n. generalize dependent m. 
+    induction o as [|o']. 
+    SCase "o = 0". 
+      intros m n H.
+      destruct m as [|m'].
+      SSCase "m = 0". 
+        simpl in H. rewrite -> H. apply c1.
+      SSCase "m = S m'".
+        inversion H.
+    SCase "o = S o'".
+      intros m n H. destruct m as [|m'].
+      SSCase "m = 0".
+        simpl in H. rewrite -> H. apply c3. apply IHo'. 
+        reflexivity.
+      SSCase "m = S m'".
+        apply c2. apply IHo'. inversion H. reflexivity.
+Qed.
+
 (** [] *)
 
 End R.
@@ -1234,8 +1361,10 @@ End R.
     asserts that [P] is true for every element of the list [l]. *)
 
 Inductive all (X : Type) (P : X -> Prop) : list X -> Prop :=
-| all_nil  : all X P []
-| all_cons : forall (x:X) (l:list X), (P x) -> (all X P l) -> all X P (x::l).
+  (* SOLUTION: *)
+| all_nil : all X P []
+| all_cons : forall x l, P x -> all X P l -> all X P (x::l)
+.
 
 (** Recall the function [forallb], from the exercise
     [forall_exists_challenge] in chapter [Poly]: *)
@@ -1253,32 +1382,28 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     Are there any important properties of the function [forallb] which
     are not captured by your specification? *)
 
-Theorem all_forallb :
-  forall (X:Type) (l:list X) (P : X -> Prop) (p : X -> bool),
-    (forall x:X, (P x) <-> (p x = true)) ->
-    (forallb p l = true <-> all X P l).
-Proof. Admitted.
-(* Also many attempts *)
-(*  intros X l P p H.
+(* SOLUTION: *)
+Theorem forallb_spec : forall X test l, 
+   forallb test l = true <-> all X (fun x => test x = true) l.
+Proof.
+  intros X test.
   split.
-  Case "->".
-    intros H1.
-    induction l as [|h t].
-    SCase "[]". apply all_nil.
-    SCase "h::t".
-      apply all_cons.
-      split 
-      simpl in H1.
-      apply H.
-      rewrite <- H1.
-      destruct (p h).
-      SSCase "p h = true". simpl.
-      SSCase "p h = false".
-        inversion H1.
-        apply IHt.
-        simpl in H1.
-*)
-(* TODO *)
+  Case "-> direction". induction l as [|x l'].
+    SCase "l = []". simpl. intros. apply all_nil.
+    SCase "l = x::l'". simpl. 
+      intros H. apply andb_true__and in H. inversion H as [H1 H2].
+      apply all_cons. apply H1. apply IHl'. apply H2.
+  Case "<- direction". induction l as [|x l'].
+    SCase "l = []". simpl. reflexivity.
+    SCase "l = x::l'". simpl.
+      intros H. inversion H.
+      apply and__andb_true. split.
+        apply H2.
+        apply IHl'. apply H3.
+Qed. 
+
+(* This theorem exactly captures the input-output behaviour of [allb]. However, 
+   it does not say anything about the running time. *)
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (filter_challenge) *)
@@ -1306,7 +1431,66 @@ Proof. Admitted.
     for one list to be a merge of two others.  Do this with an
     inductive relation, not a [Fixpoint].)  *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Inductive merge {X:Type} : list X -> list X -> list X -> Prop :=
+  | merge_empty : 
+      merge [] [] [] 
+  | merge_left : forall l1 l2 l3 x, 
+      merge l1 l2 l3 -> 
+      merge (x::l1) l2 (x::l3)
+  | merge_right : forall l1 l2 l3 x, 
+      merge l1 l2 l3 -> 
+      merge l1 (x::l2) (x::l3).  
+
+Theorem filter_good : forall {X : Type}, 
+                      forall (test : X->bool), 
+                      forall (l1 l2 l3 : list X),
+  forallb test l1 = true ->
+  forallb (fun x => negb (test x)) l2 = true ->
+  merge l1 l2 l3 ->
+  filter test l3 = l1.
+Proof.
+  intros X test l1 l2 l3 HT HF HM.
+  induction HM.  
+  Case "merge_empty". reflexivity.
+  Case "merge_left". unfold filter.
+    remember (test x) as testx. destruct testx.
+    SCase "test x = true". unfold filter in IHHM. rewrite -> IHHM. reflexivity.
+      unfold forallb in HT. rewrite <- Heqtestx in HT. apply HT. apply HF.
+    SCase "test x = false". unfold forallb in HT. rewrite <- Heqtestx in HT.
+      inversion HT.
+  Case "merge_right". unfold filter.
+    remember (test x) as testx. destruct testx.
+    SCase "test x = true". unfold forallb in HF. rewrite <- Heqtestx in HF.
+      inversion HF.  
+    SCase "test x = false". 
+      unfold filter in IHHM. rewrite -> IHHM. reflexivity.
+      apply HT. unfold forallb in HF. rewrite <- Heqtestx in HF. apply HF. 
+Qed.
+
+(* An alternate solution: *)
+Lemma cons_eq : forall X (x:X) l1 l2, l1 = l2 -> x::l1 = x::l2.
+Proof. intros. rewrite -> H. reflexivity. Qed.
+
+Lemma negb_true : forall b, negb b = true -> b = false.
+Proof. intros b eq. destruct b; [inversion eq | reflexivity]. Qed.
+
+Theorem filter_spec : forall (X:Type) (test:X->bool) (l l1 l2:list X),
+ merge l1 l2 l ->
+ forallb test l1 = true ->
+ forallb (fun x => negb (test x)) l2 = true ->
+ l1 = filter test l.
+Proof.
+ intros X test l1 l2 l3 HM. induction HM.
+ Case "merge_empty". intros HT HF. simpl. reflexivity.
+ Case "merge_left". intros HT HF. simpl. simpl in HT.
+   apply andb_true__and in HT. inversion HT as [HX HL1].
+   rewrite -> HX. apply cons_eq. apply IHHM. apply HL1. apply HF.
+ Case "merge_right". intros HT HF. simpl. simpl in HF.
+   apply andb_true__and in HF. inversion HF as [HX HL2].
+   apply negb_true in HX. rewrite -> HX. apply IHHM. apply HT. apply HL2.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 5 stars, advanced, optional (filter_challenge_2) *)
@@ -1315,7 +1499,236 @@ Proof. Admitted.
     that [test] evaluates to [true] on all their members, [filter test
     l] is the longest.  Express this claim formally and prove it. *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+(** We reproduce the definition of subseq here, with a different name
+    so it doesn't conflict. *)
+Inductive subseq' {X:Type} : list X -> list X -> Prop :=
+  | sub_nil  : forall l, subseq' [] l
+  | sub_take : forall x l1 l2, subseq' l1 l2 -> subseq' (x :: l1) (x :: l2)
+  | sub_skip : forall x l1 l2, subseq' l1 l2 -> subseq' l1 (x :: l2).
+
+(** A few lemmas about subseq. *)
+Lemma subseq_drop_l : forall (X:Type) (x:X) (l1 l2 : list X),
+  subseq' (x :: l1) l2 -> subseq' l1 l2.
+Proof.
+  intros X x l1 l2 Hsub.
+  induction l2 as [|x' l2'].
+  Case "l2 = []". inversion Hsub.
+  Case "l2 = x' :: l2'".
+    inversion Hsub.
+    SCase "sub_take". apply sub_skip. apply H0.
+    SCase "sub_skip". apply sub_skip. apply IHl2'. apply H1.
+Qed.
+
+Lemma subseq_drop : forall (X:Type) (x:X) (l1 l2 : list X),
+  subseq' (x :: l1) (x :: l2) -> subseq' l1 l2.
+Proof.
+  intros X x l1 l2 Hsub.
+  inversion Hsub.
+    apply H0.
+    apply subseq_drop_l with x. apply H1.
+Qed.
+
+(** Now for some silly lemmas about [<=], which we need since we
+    redefined [<=] ourselves. Of course, these are all in the Coq
+    standard library. *)
+
+Lemma le_0_n : forall n, 0 <= n.
+Proof.
+  induction n as [|n']. 
+    apply le_n. 
+    apply le_S. apply IHn'.
+Qed.
+
+Lemma le_trans : forall m n o, m <= n -> n <= o -> m <= o.
+Proof.
+  intros m n o H1 H2. induction H2.
+    apply H1.
+    apply le_S. apply IHle.
+Qed.
+
+Lemma le_Sn_le : forall n m, S n <= m -> n <= m.
+Proof.
+  intros n m H. apply le_trans with (S n).
+    apply le_S. apply le_n.
+    apply H.
+Qed.
+
+Lemma le_S_n : forall n m, S n <= S m -> n <= m.
+Proof.
+  intros n m H. inversion H.
+  Case "m = n". apply le_n.
+  Case "S n <= m". apply le_Sn_le. apply H1.
+Qed.
+
+Lemma le_n_S : forall n m, n <= m -> S n <= S m.
+Proof.
+  intros n m H. induction H.
+    apply le_n.
+    apply le_S. apply IHle.
+Qed.
+
+Lemma Sn_le_n : forall n, ~ (S n <= n).
+Proof.
+  unfold not. induction n as [|n'].
+  Case "n = 0". intros contra. inversion contra.
+  Case "n = S n'". intros H. apply IHn'.
+  apply le_S_n. apply H.
+Qed.
+
+(** A list is _maximal_ with property [P] if it has the property, and
+    every other list with the property is at most as long as it is. *)
+
+Definition maximal {X:Type} (lmax : list X) (P : list X -> Prop) := P
+lmax /\ forall l', P l' -> length l' <= length lmax.
+
+(** A "good subsequence" for a given list [l] and a [test] is a
+    subsequence of [l] all of whose members evaluate to [true] under
+    the [test]. *)
+
+Definition good_subseq {X:Type} (test : X -> bool) (l lsub : list X) :=
+  subseq' lsub l /\ forallb test lsub = true.
+
+(** Good subsequences can be extended with good elements. *)
+
+Lemma good_subseq_extend : forall (X:Type) (test : X -> bool) 
+                                  (l lsub : list X) (x : X),
+  good_subseq test l lsub -> 
+  test x = true -> 
+  good_subseq test (x::l) (x::lsub).
+Proof.
+  intros X test l lsub x [Hsub Hall] Hx. split.
+  Case "subseq". apply sub_take. apply Hsub.
+  Case "all". simpl. rewrite Hx. apply Hall.
+Qed.
+
+(** If [lmax] is a maximal good subsequence of [x :: l] and [x] is not good,
+    then [lmax] is also a maximal good subsequence of [l]. *)
+
+Lemma maximal_strengthening : forall (X:Type) (x:X) 
+                                     (lmax l : list X) 
+                                     (test : X -> bool),
+  maximal lmax (good_subseq test (x::l)) ->
+  test x = false ->
+  maximal lmax (good_subseq test l).
+Proof.
+  intros X x lmax l test [[Hsub Hall] Hlen] Hx.
+  split. split.
+  Case "subseq".
+    inversion Hsub.
+    SCase "sub_nil". apply sub_nil.
+    SCase "sub_take". rewrite H in H0.
+      rewrite <- H0 in Hall. simpl in Hall. rewrite Hx in Hall. inversion Hall.
+    SCase "sub_skip". apply H1.
+  Case "all". apply Hall.
+  Case "len". intros l' [Hsub' Hall']. apply Hlen. split.
+    SCase "subseq". apply sub_skip. apply Hsub'.
+    SCase "all". apply Hall'.
+Qed.
+
+(** Some easy lemmas about filter: its result is a good subsequence of
+    the original list. *)
+
+Lemma filter_subseq : forall (X:Type) (l : list X) (test : X -> bool),
+  subseq' (filter test l) l.
+Proof.
+  intros X l test. induction l as [|x l'].
+  Case "l = []". apply sub_nil.
+  Case "l = x :: l'". simpl. destruct (test x).
+    SCase "test x = true". apply sub_take. apply IHl'.
+    SCase "test x = false". apply sub_skip. apply IHl'.
+Qed.
+
+Lemma filter_all : forall (X:Type) (l : list X) (test : X -> bool),
+  forallb test (filter test l) = true.
+Proof.
+  intros X l test. induction l as [|x l'].
+  Case "l = []". reflexivity.
+  Case "l = x :: l'". simpl. 
+    remember (test x) as tx. destruct tx.
+    SCase "test x = true". simpl. rewrite <- Heqtx. apply IHl'.
+    SCase "test x = false". apply IHl'.
+Qed.
+
+(** And now for the main theorem: [lsub] is a maximal good subsequence
+    of [l] if and only if [filter test l = lsub]. *)
+
+Theorem filter_spec2 : forall (X:Type) (l lsub:list X) (test : X -> bool),
+  maximal lsub (good_subseq test l) <-> filter test l = lsub.
+Proof. 
+  split.
+  Case "->". 
+    generalize dependent lsub.
+    induction l as [|x l'].
+    SCase "l = []". 
+      (* lsub = [] since lsub is a subseq of l. *)
+      intros lsub [[Hsub _] _].
+      inversion Hsub. reflexivity.
+    SCase "l = x :: l'".
+      intros lsub H. simpl.
+      remember (test x) as tx. destruct tx.
+      SSCase "test x = true".
+        destruct H as [[Hsub Hall] Hlen].
+        (* in this case, lsub must begin with x, since otherwise it
+           wouldn't be maximal. *)
+        destruct lsub as [|x' lsub'].
+        SSSCase "lsub = []". (* impossible: contradicts maximality of lsub *)
+          assert (length [x] <= length ([] : list X)) as contra.
+          SSSSCase "proof of assertion".
+            apply Hlen. split. 
+              apply sub_take. apply sub_nil.
+              simpl. rewrite <- Heqtx. reflexivity.
+          inversion contra.
+        SSSCase "lsub = x' :: lsub'".
+          assert (x = x'). (* because of maximality again *)
+          SSSSCase "proof of assertion".
+            inversion Hsub. 
+            SSSSSCase "sub_take". reflexivity.
+            SSSSSCase "sub_skip". (* contradiction, since x :: x' :: lsub' 
+                                     would be longer *)
+              assert (length (x :: x' :: lsub') <= length (x' :: lsub')).
+              SSSSSSCase "proof of assertion".
+                apply Hlen. split.
+                  apply sub_take. apply H1.
+                  simpl. rewrite <- Heqtx. simpl. simpl in Hall.
+                  apply Hall.
+              simpl in H3. apply Sn_le_n in H3. inversion H3.
+          rewrite H.
+          rewrite -> (IHl' lsub'). reflexivity.
+          split. split. rewrite H in Hsub. apply subseq_drop with x'. apply Hsub.
+            simpl in Hall. apply andb_true_elim2 in Hall. apply Hall.
+            intros l0 Hgood0. rewrite <- H in Hlen. simpl in Hlen.
+            apply le_S_n. 
+            apply (Hlen (x :: l0)). apply good_subseq_extend. apply Hgood0.
+            symmetry. apply Heqtx.
+      SSCase "test x = false".
+        apply IHl'. 
+        apply maximal_strengthening with x. apply H.
+        symmetry. apply Heqtx.
+  Case "<-". intros Hfilter.
+    split. split.
+    SCase "subseq". rewrite <- Hfilter. apply filter_subseq.
+    SCase "all". rewrite <- Hfilter. apply filter_all.
+    SCase "len". generalize dependent lsub. induction l as [|x l2].
+      SSCase "l = []". intros lsub _ l' [Hsub _]. inversion Hsub. apply le_0_n.
+      SSCase "l = x :: l2". intros lsub Hfilter l' [Hsub Hall].
+        simpl in Hfilter.
+        remember (test x) as tx. destruct tx.
+        SSSCase "test x = true".
+          rewrite <- Hfilter. inversion Hsub.
+          SSSSCase "sub_nil". apply le_0_n.
+          SSSSCase "sub_take". simpl. apply le_n_S.
+            apply IHl2. reflexivity. split. apply H1. rewrite <- H0 in Hall.
+              simpl in Hall. apply andb_true_elim2 in Hall. apply Hall.
+          SSSSCase "sub_skip". simpl. apply le_S.
+            apply IHl2. reflexivity. split. apply H1. apply Hall.
+        SSSCase "test x = false".
+          apply IHl2. apply Hfilter. split. 
+          inversion Hsub. apply sub_nil. rewrite <- H0 in Hall. rewrite H in Hall.
+            simpl in Hall. rewrite <- Heqtx in Hall. inversion Hall.
+            apply H1.
+          apply Hall.
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (no_repeats) *)
@@ -1334,18 +1747,57 @@ Inductive appears_in {X:Type} (a:X) : list X -> Prop :=
 Lemma appears_in_app : forall {X:Type} (xs ys : list X) (x:X), 
      appears_in x (xs ++ ys) -> appears_in x xs \/ appears_in x ys.
 Proof.
-  (* FILL IN HERE *) Admitted.
-
+  (* SOLUTION: *)
+  intros X xs ys x. 
+  Case "->".
+    induction xs as [|x' xs']. 
+    SCase "xs = nil".
+      intros AI. 
+      simpl in AI. right. apply AI. 
+    SCase "xs = x'::xs'".
+      intros AI.
+      simpl in AI.  inversion AI as [l | b l]. 
+      SSCase "ai_here".
+        left. apply ai_here.
+      SSCase "ai_later".    
+         assert (AI' : appears_in x xs' \/ appears_in x ys). 
+            apply IHxs'.  apply H0. 
+         destruct AI'. 
+         SSSCase "left".
+           left.  apply ai_later.  apply H2. 
+         SSSCase "right".
+           right.  apply H2.  Qed.
+  
 Lemma app_appears_in : forall {X:Type} (xs ys : list X) (x:X), 
      appears_in x xs \/ appears_in x ys -> appears_in x (xs ++ ys).
 Proof.
-  (* FILL IN HERE *) Admitted.
-
+  (* SOLUTION: *)
+  intros X xs ys x. 
+    induction xs as [|x' xs']. 
+    SCase "xs = nil".
+      intros [AI1 | AI2].
+        SSCase "left".
+          inversion AI1.
+        SSCase "right".
+          apply AI2.
+    SCase "xs = x'::xs'".
+      intros [AI1 | AI2]. 
+        SSCase "left". 
+           inversion AI1. 
+           SSSCase "ai_here". 
+             apply ai_here.
+           SSSCase "ai_later". 
+             simpl. apply ai_later. apply IHxs'. left. apply H0. 
+        SSCase "right". 
+          simpl.  apply ai_later.  apply IHxs'. right. apply AI2.  Qed.
+  
 (** Now use [appears_in] to define a proposition [disjoint X l1 l2],
     which should be provable exactly when [l1] and [l2] are
     lists (with elements of type X) that have no elements in common. *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Definition disjoint {X:Type} (l1 l2: list X) :=
+  forall (x:X), appears_in x l1 -> ~ appears_in x l2.
 
 (** Next, use [appears_in] to define an inductive proposition
     [no_repeats X l], which should be provable exactly when [l] is a
@@ -1354,12 +1806,88 @@ Proof.
     [no_repeats bool []] should be provable, while [no_repeats nat
     [1,2,1]] and [no_repeats bool [true,true]] should not be.  *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+Inductive no_repeats {X:Type} : list X -> Prop :=
+  | nr_nil : no_repeats nil
+  | nr_cons : forall a l, 
+              no_repeats l ->
+              ~ (appears_in a l) ->
+              no_repeats (a::l).
 
 (** Finally, state and prove one or more interesting theorems relating
     [disjoint], [no_repeats] and [++] (list append).  *)
 
-(* FILL IN HERE *)
+(* SOLUTION: *)
+(* Here are some possible answers: *)
+  
+Lemma no_repeats_append : forall {X:Type} (l1 l2: list X),
+   no_repeats l1 -> no_repeats l2 -> disjoint l1 l2 -> no_repeats (l1 ++ l2).
+Proof.
+  intros X l1. induction l1 as [| x l1']. 
+  Case "l1 = nil".
+    intros l2 NR1 NR2 D.  simpl. apply NR2. 
+  Case "l1 = x:l1'".
+    intros l2 NR1 NR2 D. simpl.
+    apply nr_cons.  apply IHl1'. inversion NR1 as [| ? ? NRl1' NA]. 
+    apply NRl1'. apply NR2. 
+    unfold disjoint. intros x0 AI.  apply D. apply ai_later.  apply AI.
+    intro contra.  apply appears_in_app in contra.  inversion contra. 
+    inversion NR1 as [| ? ? NRl1' NA]. apply NA. apply H. 
+    unfold disjoint in D.  apply D with x.  
+    apply ai_here.
+    apply H. 
+Qed.
+
+Lemma no_repeats_disjoint : forall {X:Type} (l1 l2: list X), 
+                            no_repeats (l1++l2) -> disjoint l1 l2.
+Proof.
+   unfold disjoint.
+   induction l1 as [|x l1']. 
+     intros l2 NR x AI.  inversion AI. 
+     intros l2 NR x0 AI.  simpl in NR. inversion NR. inversion AI.  
+       intro contra. apply H2. 
+          apply app_appears_in.  right. apply contra. 
+       apply IHl1'.  apply H1. apply H4.
+Qed.
+
+(* We can also show the following results about [no_repeats] and [++]
+   by themeselves *)
+Lemma no_repeats_left : forall {X:Type} (l1 l2: list X),
+                        no_repeats (l1++l2) -> no_repeats l1.
+Proof.
+   induction l1 as [|x l1'].  
+       intros l2 NR. apply nr_nil.
+       intros l2 NR. inversion NR. apply nr_cons. apply (IHl1' l2).  apply H1.
+       intro contra. apply H2. apply app_appears_in.  left. apply contra. 
+Qed.
+       
+
+Lemma no_repeats_right: forall {X:Type} (l1 l2: list X),
+                        no_repeats (l1++l2) -> no_repeats l2.
+Proof.
+   induction l1 as [|x l1'].
+     intros l2 NR. simpl in NR.  apply NR. 
+     intros l2 NR. inversion NR. apply IHl1'.  apply H1. 
+Qed.
+
+(* This theorem combines the various lemmas to give a complete
+   characterization *)
+Theorem no_repeats_disjoint_app : forall {X:Type} (l1 l2: list X),
+  no_repeats (l1++l2) <->
+  (no_repeats l1 /\ no_repeats l2 /\ disjoint l1 l2).
+Proof.
+  intros X l1 l2. 
+  split.
+  Case "->".
+    intro NR. split.
+      apply no_repeats_left with l2. apply NR.
+      split.
+        apply no_repeats_right with l1. apply NR.
+        apply no_repeats_disjoint. apply NR.
+  Case "<-".
+    intros [NR1 [NR2 DISJ]]. 
+    apply no_repeats_append. apply NR1. apply NR2.  apply DISJ. 
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (le_exercises) *)
@@ -1370,52 +1898,109 @@ Proof.
 Theorem O_le_n : forall n,
   0 <= n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  induction n as [| n'].
+  Case "n = 0".
+    apply le_n.
+  Case "n = S n'".
+    apply le_S. apply IHn'.  Qed.
 
 Theorem n_le_m__Sn_le_Sm : forall n m,
   n <= m -> S n <= S m.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros n m H. induction H.
+    apply le_n.
+    apply le_S. apply IHle.  Qed.
 
 Theorem Sn_le_Sm__n_le_m : forall n m,
   S n <= S m -> n <= m.
 Proof. 
   intros n m.  generalize dependent n.  induction m. 
-  (* FILL IN HERE *) Admitted. 
+  (* SOLUTION: *)
+   intros n H. 
+     destruct n. 
+       apply le_n.
+       inversion H.  inversion H1. 
+   intros n H. 
+     inversion H; subst. 
+       apply le_n. 
+       apply le_S.  apply IHm.  assumption.
+Qed.
 
 Theorem le_plus_l : forall a b,
   a <= a + b.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros a b. induction a.
+    apply O_le_n.
+    apply n_le_m__Sn_le_Sm in IHa. assumption.  Qed.
 
 Theorem plus_lt : forall n1 n2 m,
   n1 + n2 < m ->
   n1 < m /\ n2 < m.
 Proof. 
- (* FILL IN HERE *) Admitted.
+ (* SOLUTION: *)
+  intros. induction H; unfold lt.
+  split. 
+    apply n_le_m__Sn_le_Sm. apply le_plus_l.
+    rewrite plus_comm. apply n_le_m__Sn_le_Sm. apply le_plus_l. 
+  inversion IHle as [Hn1m Hn2m].
+    unfold lt in Hn1m, Hn2m.
+    apply le_S in Hn1m. apply le_S in Hn2m.
+    split. apply Hn1m. apply Hn2m.  Qed.
 
 Theorem lt_S : forall n m,
   n < m ->
   n < S m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  unfold lt. intros. apply le_S. assumption. Qed.
 
 Theorem ble_nat_true : forall n m,
   ble_nat n m = true -> n <= m.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros n.
+  induction n as [| n']. 
+  Case "n = 0". intros m H.
+    apply O_le_n.
+  Case "n = S n'". intros m H.
+    simpl in H. destruct m as [| m'].
+    SCase "m = 0".
+      inversion H.
+    SCase "m = S m'".
+      apply IHn' in H.
+      apply n_le_m__Sn_le_Sm.
+      assumption.  Qed.
 
 Theorem ble_nat_n_Sn_false : forall n m,
   ble_nat n (S m) = false ->
   ble_nat n m = false.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros n. induction n as [| n'].
+  Case "n = 0". intros m H.
+    simpl in H. inversion H.
+  Case "n = S n'". intros m H.
+    destruct m as [| m'].
+    SCase "m = 0".
+      reflexivity.
+    SCase "m = S m'".
+      simpl. apply IHn'. simpl in H. assumption.  Qed.
 
 Theorem ble_nat_false : forall n m,
   ble_nat n m = false -> ~(n <= m).
 Proof.
   (* Hint: Do the right induction! *)
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros.
+  unfold not. intro Hle. induction Hle.
+    Case "le_n".
+      rewrite <- ble_nat_refl in H.  inversion H.
+    Case "le_S".
+      apply IHHle.
+      apply ble_nat_n_Sn_false. assumption.  Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (nostutter) *)
@@ -1432,9 +2017,11 @@ Proof.
     does not stutter.) *)
 
 Inductive nostutter:  list nat -> Prop :=
-| ns_nil : nostutter []
-| ns_one : forall n, nostutter [n]
-| ns_two : forall n m l, n <> m -> nostutter (m::l) -> nostutter (n::m::l).
+ (* SOLUTION: *)
+ | nostutter0: nostutter nil
+ | nostutter1: forall n, nostutter (n::nil)
+ | nostutter2: forall a b r, a<>b -> nostutter(b::r) -> nostutter (a::b::r)
+ .
 
 (** Make sure each of these tests succeeds, but you are free
     to change the proof if the given one doesn't work for you.
@@ -1449,16 +2036,19 @@ Inductive nostutter:  list nat -> Prop :=
     tactics.  *)
 
 Example test_nostutter_1:      nostutter [3,1,4,1,5,6].
+(* SOLUTION: *)
   Proof. repeat constructor; apply beq_false_not_eq; auto. Qed.
 
-
 Example test_nostutter_2:  nostutter [].
+(* SOLUTION: *)
   Proof. repeat constructor; apply beq_false_not_eq; auto. Qed.
 
 Example test_nostutter_3:  nostutter [5].
+(* SOLUTION: *)
   Proof. repeat constructor; apply beq_false_not_eq; auto. Qed.
 
 Example test_nostutter_4:      not (nostutter [3,1,1,4]).
+(* SOLUTION: *)
   Proof. intro.
   repeat match goal with 
     h: nostutter _ |- _ => inversion h; clear h; subst 
@@ -1479,20 +2069,32 @@ Example test_nostutter_4:      not (nostutter [3,1,1,4]).
 Lemma app_length : forall {X:Type} (l1 l2 : list X),
   length (l1 ++ l2) = length l1 + length l2. 
 Proof. 
-  (* FILL IN HERE *) Admitted.
-
+  (* SOLUTION: *)
+  intros X l1. induction l1 as [|x l1'].
+  Case "l1 = nil". reflexivity.
+  Case "l1 = x::l1'". intros l2.  simpl. rewrite -> IHl1'. reflexivity. Qed.
+  
 Lemma appears_in_app_split : forall {X:Type} (x:X) (l:list X),
   appears_in x l -> 
   exists l1, exists l2, l = l1 ++ (x::l2).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  induction l as [|x' l']; intros AI. 
+  Case "l = nil". inversion AI. 
+  Case "l = x'::l'". inversion AI.  
+    SCase "x = x'". exists []. exists l'. reflexivity.
+    SCase "appears_in x l'". destruct (IHl' H0) as [l1' [l2' EQ]].
+       exists (x'::l1'). exists l2'. rewrite -> EQ.  reflexivity.
+Qed.
 
 (** Now define a predicate [repeats] (analogous to [no_repeats] in the
    exercise above), such that [repeats X l] asserts that [l] contains
    at least one repeated element (of type [X]).  *)
 
 Inductive repeats {X:Type} : list X -> Prop :=
-  (* FILL IN HERE *)
+  (* SOLUTION: *)
+  | rep_here : forall a l, appears_in a l -> repeats (a::l)
+  | rep_later : forall a l, repeats l -> repeats (a::l)
 .
 
 (** Now here's a way to formalize the pigeonhole principle. List [l2]
@@ -1507,8 +2109,30 @@ Theorem pigeonhole_principle: forall {X:Type} (l1 l2:list X),
   length l2 < length l1 -> 
   repeats l1.  
 Proof.  intros X l1. induction l1.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+    intros l2 EM INC NR.  simpl in NR. inversion NR. 
+    intros l2 EM INC NR. 
+    destruct (EM (appears_in x l1)). 
+      left. assumption.
+      right. destruct (appears_in_app_split x l2) as [l2a [l2b EQ]]. 
+        apply INC. left.
+        apply (IHl1 (l2a ++ l2b) EM). 
+         intros x0 AI.  
+          assert (x0 <> x).  intro. subst. apply H. apply AI. 
+          assert (appears_in x0 l2).  apply INC. right. assumption.
+          rewrite EQ in H1. apply appears_in_app in H1. apply app_appears_in. 
+            inversion H1. 
+              left. assumption.
+              inversion H2; subst. 
+                 apply ex_falso_quodlibet.  apply H0. reflexivity. 
+                 right.  assumption.
+         assert (length l2 = S(length (l2a ++ l2b))).
+            rewrite EQ.  
+            rewrite app_length. rewrite app_length. rewrite plus_comm. 
+            simpl. rewrite plus_comm. reflexivity.
+        rewrite H0 in NR. simpl in NR. 
+        apply Sn_le_Sm__n_le_m.  apply NR.  Qed. 
 (** [] *)
 
-(* $Date: 2013-02-06 20:50:09 -0500 (Wed, 06 Feb 2013) $ *)
+(* $Date: 2013-02-10 18:08:54 -0500 (Dom, 10 Feb 2013) $ *)
 
