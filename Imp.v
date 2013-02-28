@@ -521,8 +521,32 @@ Proof.
     function which performs that transformation on [bexp]s, and prove
     it is sound.  Use the tacticals we've just seen to make the proof
     as elegant as possible. *)
+Fixpoint optimize_0plus_bexp (b:bexp) : bexp :=
+  match b with
+    | BAnd b1 b2 => BAnd (optimize_0plus_bexp b1) (optimize_0plus_bexp b2)
+    | BNot b     => BNot (optimize_0plus_bexp b)
+    | BEq a1 a2  => BEq (optimize_0plus a1) (optimize_0plus a2)
+    | BLe a1 a2  => BLe (optimize_0plus a1) (optimize_0plus a2)
+    | b => b
+  end.
 
-(* FILL IN HERE *)
+Tactic Notation "bexp_cases" tactic(first) ident(c) :=
+  first;
+  [ Case_aux c "True" | Case_aux c "False" |
+    Case_aux c "Eq" | Case_aux c "Le" |
+    Case_aux c "Not" | Case_aux c "And" ].
+
+Theorem optimize_0plus_bexp_sound: forall b,
+  beval (optimize_0plus_bexp b) = beval b.
+Proof.
+  intros b.
+  bexp_cases (induction b) Case;
+    try reflexivity;
+    try (simpl; rewrite optimize_0plus_sound; rewrite optimize_0plus_sound;
+         reflexivity).
+  Case "Not". simpl. rewrite IHb. reflexivity.
+  Case "And". simpl. rewrite IHb1. rewrite IHb2. reflexivity.
+Qed.  
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (optimizer) *)
