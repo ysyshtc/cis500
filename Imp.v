@@ -827,6 +827,19 @@ Inductive bevalR : bexp -> bool -> Prop :=
     (e1 || b1) -> (e2 || b2) -> (BAnd e1 e2) || (andb b1 b2)
 
   where "e '||' n" := (bevalR e n) : type_scope.
+
+Theorem beval_iff_bevalR : forall e b,
+  (e || b) <-> beval e = b.
+Proof.
+  split.
+  Case "->".
+    intros H.
+    induction H. (*TODO*)
+    subst.
+
+
+
+
 (** [] *)
 End AExp.
 
