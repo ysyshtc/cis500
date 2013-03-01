@@ -817,14 +817,14 @@ Qed.
 Inductive bevalR : bexp -> bool -> Prop :=
 | E_BTrue : BTrue || true
 | E_BFalse : BFalse || false
-| E_BEq : forall (e1 e2 : aexp) (n1 n2 : nat),
-    (aevalR e1 n1) -> (aevalR e2 n2) -> (BEq e1 e2) || (beq_nat n1 n2)
-| E_BLe : forall (e1 e2 : aexp) (n1 n2 : nat),
-    (aevalR e1 n1) -> (aevalR e2 n2) -> (BLe e1 e2) || (beq_nat n1 n2)
 | E_BNot : forall (e:bexp) (b:bool),
     (e || b) -> (BNot e) || (negb b)
 | E_BAnd : forall (e1 e2 : bexp) (b1 b2 : bool),
     (e1 || b1) -> (e2 || b2) -> (BAnd e1 e2) || (andb b1 b2)
+| E_BEq : forall (e1 e2 : aexp) (n1 n2 : nat),
+    (aevalR e1 n1) -> (aevalR e2 n2) -> (BEq e1 e2) || (beq_nat n1 n2)
+| E_BLe : forall (e1 e2 : aexp) (n1 n2 : nat),
+    (aevalR e1 n1) -> (aevalR e2 n2) -> (BLe e1 e2) || (ble_nat n1 n2)
 
   where "e '||' n" := (bevalR e n) : type_scope.
 
@@ -834,12 +834,20 @@ Proof.
   split.
   Case "->".
     intros H.
-    induction H. (*TODO*)
-    subst.
-
-
-
-
+    induction H;
+    try (simpl; subst; reflexivity);
+    try (apply aeval_iff_aevalR in H; apply aeval_iff_aevalR in H0;
+         subst; reflexivity).
+  Case "<-".
+    generalize dependent b.
+    induction e;
+      simpl; intros; subst; constructor;
+      try apply aeval_iff_aevalR;
+      try apply IHe;
+      try apply IHe1; 
+      try apply IHe2; 
+      reflexivity.
+Qed.
 (** [] *)
 End AExp.
 
