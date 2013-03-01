@@ -1032,7 +1032,7 @@ Definition update (st : state) (x : id) (n : nat) : state :=
 Theorem update_eq : forall n x st,
   (update st x n) x = n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. unfold update. rewrite <- beq_id_refl. reflexivity.
 (** [] *)
 
 (** **** Exercise: 1 star (update_neq) *)
@@ -1040,7 +1040,7 @@ Theorem update_neq : forall x2 x1 n st,
   beq_id x2 x1 = false ->
   (update st x2 n) x1 = (st x1).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. unfold update. rewrite H. reflexivity.
 (** [] *)
 
 (** **** Exercise: 1 star (update_example) *)
