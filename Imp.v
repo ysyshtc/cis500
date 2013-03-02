@@ -1061,6 +1061,7 @@ Theorem update_shadow : forall n1 n2 x1 x2 (st : state),
    (update  (update st x2 n1) x2 n2) x1 = (update st x2 n2) x1.
 Proof.
   intros. unfold update. destruct (beq_id x2 x1). reflexivity. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars (update_same) *)
@@ -1068,7 +1069,11 @@ Theorem update_same : forall n1 x1 x2 (st : state),
   st x1 = n1 ->
   (update st x1 n1) x2 = st x2.
 Proof.
-  intros. unfold update. subst. destruct (beq_id x1 x2). Admitted.
+  intros. subst. unfold update. remember (beq_id x1 x2) as H.
+  destruct H.
+  Case "True". apply beq_id_eq in HeqH. rewrite HeqH. reflexivity.
+  Case "False". reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (update_permute) *)
@@ -1076,7 +1081,18 @@ Theorem update_permute : forall n1 n2 x1 x2 x3 st,
   beq_id x2 x1 = false ->
   (update (update st x2 n1) x1 n2) x3 = (update (update st x1 n2) x2 n1) x3.
 Proof.
-  intros. unfold update. destruct (beq_id x1 x3). 
+  intros. apply beq_id_false_not_eq in H. 
+  unfold update.
+  remember (beq_id x1 x3) as H1.
+  destruct H1.
+  Case "True".
+    apply beq_id_eq in HeqH1.
+    rewrite HeqH1 in H.
+    rewrite not_eq_beq_id_false.
+    reflexivity.
+    apply H.
+  Case "False". reflexivity.
+Qed.
 (** [] *)
 
 (* ################################################### *)
@@ -1450,7 +1466,12 @@ Example ceval_example2:
     (X ::= ANum 0; Y ::= ANum 1; Z ::= ANum 2) / empty_state ||
     (update (update (update empty_state X 0) Y 1) Z 2).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply E_Seq with (update empty_state X 0).
+  Case "assignment command". apply E_Ass. reflexivity.
+  Case "seq2". apply E_Seq with (update (update empty_state X 0) Y 1).
+    SCase "assignment command". apply E_Ass. reflexivity.
+    SCase "seq3". apply E_Ass. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (pup_to_n) *)
@@ -1551,11 +1572,9 @@ Proof.
 
 (** **** Exercise: 3 stars (XtimesYinZ_spec) *)
 (** State and prove a specification of [XtimesYinZ]. *)
-
-(* FILL IN HERE *)
 (** [] *)
 
-(** **** Exercise: 3 stars (loop_never_stops) *)
+(** **** Exercise stars (loop_never_stops) *)
 Theorem loop_never_stops : forall st st',
   ~(loop / st || st').
 Proof.
