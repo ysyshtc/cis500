@@ -181,7 +181,17 @@ Theorem skip_right: forall c,
     (c; SKIP) 
     c.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  intros c st st'.
+  split; intros H.
+  Case "->".
+    inversion H. subst.
+    inversion H5. subst.
+    assumption.
+  Case "<-".
+    apply E_Seq with st'.
+    apply H.
+    apply E_Skip.
+Qed.
 (** [] *)
 
 (** Similarly, here is a simple transformations that simplifies [IFB]
