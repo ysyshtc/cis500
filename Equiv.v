@@ -81,12 +81,12 @@ Definition cequiv (c1 c2 : com) : Prop :=
     through (h) are all equivalent to each other, but not to (i), your
     answer should look like this: {a,b,c,d,e,f,g,h} {i}.
 
-(a)
+(a) Nonterminating: Y = 0, X = inf
     WHILE X > 0 DO
       X ::= X + 1
     END
 
-(b)
+(b) (X = 0 -> X = 0 ), (X != 0 -> X = X), Y = 0
     IFB X = 0 THEN
       X ::= X + 1;
       Y ::= 1
@@ -96,10 +96,10 @@ Definition cequiv (c1 c2 : com) : Prop :=
     X ::= X - Y;
     Y ::= 0
 
-(c)
+(c) (_)
     SKIP
 
-(d)
+(d) Nonterminating: Y = 0
     WHILE X <> 0 DO
       X ::= X * Y + 1
     END
@@ -128,7 +128,7 @@ Definition cequiv (c1 c2 : com) : Prop :=
       X ::= Y + 1
     END
 
-(* FILL IN HERE *)
+{a, d} {b} {c, h} {e} {f} {g} {i}
 [] *)
 
 
