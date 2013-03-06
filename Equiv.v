@@ -280,7 +280,7 @@ Proof.
   intros.
   split; intros.
   Case "->".
-    inversion H0. subst.
+    inversion H0; subst.
     SCase "b || true (contra)".
       rewrite H in H6.
       inversion H6.
@@ -303,7 +303,23 @@ Theorem swap_if_branches: forall b e1 e2,
     (IFB b THEN e1 ELSE e2 FI)
     (IFB BNot b THEN e2 ELSE e1 FI).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  split; intros; inversion H; subst.
+  Case "->".
+    apply E_IfFalse.
+      simpl. rewrite H5. reflexivity.
+      apply H6.
+    apply E_IfTrue.
+      simpl. rewrite H5. reflexivity.
+      apply H6.
+  Case "<-".
+    apply E_IfFalse.
+      simpl in H5. apply negb_true_iff. apply H5.
+      apply H6.
+    apply E_IfTrue.
+      simpl in H5. apply negb_false_iff. apply H5.
+      apply H6.
+Qed.
 (** [] *)
 
 (** For [WHILE] loops, we can give a similar pair of theorems.  A loop
