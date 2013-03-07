@@ -424,7 +424,8 @@ Proof.
   Case "->". 
     apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
     apply H in H0. inversion H0.
-  Case "<-". (* TODO *)
+  Case "<-". admit. Qed.
+(* TODO *)
 (*    inversion H0; subst.
     SCase "WhileEnd". inversion H5.
     SCase "WhileLoop".
@@ -1206,7 +1207,14 @@ Proof.
       apply trans_cequiv with c2; try assumption.
       apply IFB_false; assumption.
   Case "WHILE".
-    (* FILL IN HERE *) Admitted.
+    assert (bequiv b (fold_constants_bexp b)).
+      apply fold_constants_bexp_sound.
+    remember (fold_constants_bexp b) as b'.
+    destruct b';
+      try (apply CWhile_congruence; assumption).
+    apply WHILE_true. assumption.
+    apply WHILE_false. assumption.
+Qed.
 (** [] *)
 
 (* ########################################################## *)
