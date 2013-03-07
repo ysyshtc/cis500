@@ -304,6 +304,9 @@ Theorem swap_if_branches: forall b e1 e2,
     (IFB BNot b THEN e2 ELSE e1 FI).
 Proof.
   intros.
+(*  split; intros. inversion H; subst;
+  [apply E_IfFalse | apply E_IfTrue].
+  repeat (simpl; rewrite H5; reflexivity. apply H6).*)
   split; intros; inversion H; subst.
   Case "->".
     apply E_IfFalse.
@@ -416,7 +419,48 @@ Theorem WHILE_true: forall b c,
        (WHILE b DO c END)
        (WHILE BTrue DO SKIP END).
 Proof. 
-  (* FILL IN HERE *) Admitted.
+  intros.
+  split; intros.
+  Case "->". 
+    apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
+    apply H in H0. inversion H0.
+  Case "<-". (* TODO *)
+(*    inversion H0; subst.
+    SCase "WhileEnd". inversion H5.
+    SCase "WhileLoop".
+    apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
+      unfold not in H. apply H.
+      apply E_Skip in H4.
+
+      unfold bequiv in H.
+      rewrite H.
+      apply E_WhileLoop with (st' := st'0).
+      rewrite H. reflexivity.
+       apply E_Skip in H4.
+      unfold bequiv in H. apply H in H3.
+      apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
+      unfold not in H. 
+      apply.
+
+    apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
+
+
+    inversion H0; subst.
+    SCase "WhileEnd". inversion H5.
+    SCase "WhileLoop". 
+      apply E_WhileLoop with (st':=st'). apply H. 
+    unfold bequiv in H. apply H.
+
+      unfold bequiv in H. rewrite <- H in H5.    
+    
+    inversion H0; subst.
+    rewrite H in H0.
+    inversion H0; subst.
+    SCase "WhileEnd".
+      rewrite H in H5. inversion H5.
+    SCase "WhileLoop". apply WHILE_true_nonterm.
+      unfold bequiv in H. rewrite H in H3. inversion H3.
+*)
 (** [] *)
 
 Theorem loop_unrolling: forall b c,
@@ -521,6 +565,7 @@ Theorem identity_assignment : forall (X:id),
   cequiv
     (X ::= AId X)
     SKIP.
+
 Proof. 
    intros. split; intro H.
      Case "->". 
@@ -543,7 +588,22 @@ Theorem assign_aequiv : forall X e,
   aequiv (AId X) e -> 
   cequiv SKIP (X ::= e).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. split; intros; inversion H0; subst.
+  Case "->".
+    assert (st' = (update st' X (st' X))).
+      apply functional_extensionality. intro.
+      rewrite update_same; reflexivity.
+    rewrite H1 at 2.
+    apply E_Ass.
+    rewrite <- H.
+    reflexivity.
+  Case "<-".
+    rewrite <- H. simpl.
+    replace (update st X (st X)) with st.
+    apply E_Skip.
+    apply functional_extensionality.
+    intro. rewrite update_same; reflexivity.
+Qed.
 (** [] *)
 
 (* ####################################################### *)
