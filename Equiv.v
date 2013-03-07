@@ -304,9 +304,6 @@ Theorem swap_if_branches: forall b e1 e2,
     (IFB BNot b THEN e2 ELSE e1 FI).
 Proof.
   intros.
-(*  split; intros. inversion H; subst;
-  [apply E_IfFalse | apply E_IfTrue].
-  repeat (simpl; rewrite H5; reflexivity. apply H6).*)
   split; intros; inversion H; subst.
   Case "->".
     apply E_IfFalse.
@@ -424,44 +421,10 @@ Proof.
   Case "->". 
     apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
     apply H in H0. inversion H0.
-  Case "<-". admit. Qed.
-(* TODO *)
-(*    inversion H0; subst.
-    SCase "WhileEnd". inversion H5.
-    SCase "WhileLoop".
-    apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
-      unfold not in H. apply H.
-      apply E_Skip in H4.
-
-      unfold bequiv in H.
-      rewrite H.
-      apply E_WhileLoop with (st' := st'0).
-      rewrite H. reflexivity.
-       apply E_Skip in H4.
-      unfold bequiv in H. apply H in H3.
-      apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
-      unfold not in H. 
-      apply.
-
-    apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
-
-
-    inversion H0; subst.
-    SCase "WhileEnd". inversion H5.
-    SCase "WhileLoop". 
-      apply E_WhileLoop with (st':=st'). apply H. 
-    unfold bequiv in H. apply H.
-
-      unfold bequiv in H. rewrite <- H in H5.    
-    
-    inversion H0; subst.
-    rewrite H in H0.
-    inversion H0; subst.
-    SCase "WhileEnd".
-      rewrite H in H5. inversion H5.
-    SCase "WhileLoop". apply WHILE_true_nonterm.
-      unfold bequiv in H. rewrite H in H3. inversion H3.
-*)
+  Case "<-". 
+    apply loop_never_stops in H0.
+    inversion H0.
+Qed.
 (** [] *)
 
 Theorem loop_unrolling: forall b c,
@@ -1511,8 +1474,8 @@ Inductive ceval : com -> state -> state -> Prop :=
                   c1 / st || st' ->
                   (WHILE b1 DO c1 END) / st' || st'' ->
                   (WHILE b1 DO c1 END) / st || st''
-(* FILL IN HERE *)
-
+  | E_Havoc : forall (st:state) (X:id) (n:nat),
+    (HAVOC X) / st || update st X n
   where "c1 '/' st '||' st'" := (ceval c1 st st').
 
 Tactic Notation "ceval_cases" tactic(first) ident(c) :=
@@ -1520,20 +1483,22 @@ Tactic Notation "ceval_cases" tactic(first) ident(c) :=
   [ Case_aux c "E_Skip" | Case_aux c "E_Ass" | Case_aux c "E_Seq"
   | Case_aux c "E_IfTrue" | Case_aux c "E_IfFalse"
   | Case_aux c "E_WhileEnd" | Case_aux c "E_WhileLoop"
-(* FILL IN HERE *)
+  | Case_aux c "E_Havoc"
 ].
 
 (** As a sanity check, the following claims should be provable for
    your definition: *)
 
 Example havoc_example1 : (HAVOC X) / empty_state || update empty_state X 0.
-Proof.
-(* FILL IN HERE *) Admitted.
+Proof. apply E_Havoc. Qed.
 
 Example havoc_example2 :
   (SKIP; HAVOC Z) / empty_state || update empty_state Z 42.
 Proof.
-(* FILL IN HERE *) Admitted.
+  apply E_Seq with (st':=empty_state).
+  apply E_Skip.
+  apply E_Havoc.
+Qed.
 (** [] *)
 
 (** Finally, we repeat the definition of command equivalence from above: *)
@@ -1559,8 +1524,28 @@ Definition pYX :=
 
 Theorem pXY_cequiv_pYX :
   cequiv pXY pYX \/ ~cequiv pXY pYX.
-Proof. (* FILL IN HERE *) Admitted.
-
+Proof.
+(*  right. unfold cequiv, pXY, pYX. intros.
+  unfold not. intros.
+  right in H.*)
+(*
+  left. unfold cequiv, pYX, pXY. intros.
+  split; intros.
+  Case "->".
+    inversion H; subst.
+    inversion H2.
+    inversion H5.
+    subst.
+    assert ((update (update st X n) Y n0) = (update (update st Y n0) X n)).
+      apply functional_extensionality. (* TODO *) 
+      rewrite update_same.
+    apply E_Seq with (st':=st'0).
+    apply H2.
+    inversion H2; subst.
+    inversion H5; subst.
+    assert (st'0 = (update st Y (st Y))).
+*)
+Admitted.
 (** **** Exercise: 4 stars, optional (havoc_copy) *)
 (** Are the following two programs equivalent? *)
 
