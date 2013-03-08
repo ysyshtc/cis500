@@ -1525,20 +1525,29 @@ Definition pYX :=
 Theorem pXY_cequiv_pYX :
   cequiv pXY pYX \/ ~cequiv pXY pYX.
 Proof.
-(*  right. unfold cequiv, pXY, pYX. intros.
+  (* I believe they are equivalent, but I'm having trouble proving it. *)
+(*  right.
   unfold not. intros.
   right in H.*)
-(*
-  left. unfold cequiv, pYX, pXY. intros.
+(*  left. unfold cequiv, pYX, pXY. intros.
   split; intros.
   Case "->".
-    inversion H; subst.
+    inversion H.
     inversion H2.
     inversion H5.
     subst.
     assert ((update (update st X n) Y n0) = (update (update st Y n0) X n)).
-      apply functional_extensionality. (* TODO *) 
-      rewrite update_same.
+      apply functional_extensionality. intros.
+      admit.
+    remember (update st X n) as st'.
+    apply E_Seq with (st':=st').
+    apply E_Havoc.
+
+      rewrite <- update_permute. reflexivity.
+      apply not_eq_beq_id_false.
+    apply E_Seq with (st':=(update st Y n0)).
+    apply E_Havoc.
+
     apply E_Seq with (st':=st'0).
     apply H2.
     inversion H2; subst.
