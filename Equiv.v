@@ -1521,26 +1521,43 @@ Definition pYX :=
 
 (** If you think they are equivalent, prove it. If you think they are
     not, prove that. *)
+Theorem updates_aux : forall st X Y x y,
+  update (update st X x) Y y = update (update st Y y) X x.
+Proof. Admitted.
 
 Theorem pXY_cequiv_pYX :
   cequiv pXY pYX \/ ~cequiv pXY pYX.
 Proof.
   (* I believe they are equivalent, but I'm having trouble proving it. *)
-(*  right.
-  unfold not. intros.
-  right in H.*)
-(*  left. unfold cequiv, pYX, pXY. intros.
+  left. unfold cequiv, pYX, pXY. intros.
   split; intros.
   Case "->".
     inversion H.
     inversion H2.
     inversion H5.
     subst.
-    assert ((update (update st X n) Y n0) = (update (update st Y n0) X n)).
+(*    apply E_Seq with (st':=st'0).*)
+(*    assert ((update (update st X n) Y n0) = (update (update st Y n0) X n)).
+      apply functional_extensionality. intros.
+      admit.*)
+    rewrite updates_aux.
+(*    rewrite H0.*)
+    apply E_Seq with (st':=(update st Y n0)).
+    apply E_Havoc.
+    apply E_Havoc.
+  Case "<-".
+    inversion H. inversion H2. inversion H5. subst.
+    assert ((update (update st X n0) Y n) = (update (update st Y n) X n0)).
       apply functional_extensionality. intros.
       admit.
+    rewrite <- H0.
+    apply E_Seq with (st':=(update st X n0)).
+    apply E_Havoc.
+    apply E_Havoc.
+Qed.    
+    
+
     remember (update st X n) as st'.
-    apply E_Seq with (st':=st').
     apply E_Havoc.
 
       rewrite <- update_permute. reflexivity.
