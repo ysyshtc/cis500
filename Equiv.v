@@ -1521,57 +1521,55 @@ Definition pYX :=
 
 (** If you think they are equivalent, prove it. If you think they are
     not, prove that. *)
-Theorem updates_aux : forall st X Y x y,
+(*Theorem updates_aux : forall st x y,
   update (update st X x) Y y = update (update st Y y) X x.
-Proof. Admitted.
-
+Proof. 
+  intros.
+  apply functional_extensionality.
+  intros.
+  apply update_permute.
+  assert (H:(beq_id X Y = false)).
+  
+    
+  remember (update st X x) as uX.
+  apply functional_extensionality.
+  intros.
+*)
 Theorem pXY_cequiv_pYX :
   cequiv pXY pYX \/ ~cequiv pXY pYX.
 Proof.
   (* I believe they are equivalent, but I'm having trouble proving it. *)
   left. unfold cequiv, pYX, pXY. intros.
+  remember (beq_id Y X) as Hb.
+  destruct Hb.
+  Case "Y = X". inversion HeqHb.
+  Case "Y <> X".
   split; intros.
-  Case "->".
-    inversion H.
-    inversion H2.
-    inversion H5.
-    subst.
-(*    apply E_Seq with (st':=st'0).*)
-(*    assert ((update (update st X n) Y n0) = (update (update st Y n0) X n)).
-      apply functional_extensionality. intros.
-      admit.*)
-    rewrite updates_aux.
-(*    rewrite H0.*)
+  SCase "->".
+    inversion H. inversion H2. inversion H5. subst.
+    assert (H0: update (update st X n) Y n0 = update (update st Y n0) X n).
+      apply functional_extensionality.
+      intros.
+      apply update_permute.
+      apply HeqHb.
+    rewrite H0.
     apply E_Seq with (st':=(update st Y n0)).
     apply E_Havoc.
     apply E_Havoc.
-  Case "<-".
+  SCase "<-".
     inversion H. inversion H2. inversion H5. subst.
-    assert ((update (update st X n0) Y n) = (update (update st Y n) X n0)).
-      apply functional_extensionality. intros.
-      admit.
-    rewrite <- H0.
+    assert (H0: update (update st Y n) X n0 = update (update st X n0) Y n).
+      apply functional_extensionality.
+      intros.
+      apply update_permute.
+      apply HeqHb.
+    rewrite H0.
     apply E_Seq with (st':=(update st X n0)).
     apply E_Havoc.
     apply E_Havoc.
-Qed.    
-    
+Qed.
 
-    remember (update st X n) as st'.
-    apply E_Havoc.
 
-      rewrite <- update_permute. reflexivity.
-      apply not_eq_beq_id_false.
-    apply E_Seq with (st':=(update st Y n0)).
-    apply E_Havoc.
-
-    apply E_Seq with (st':=st'0).
-    apply H2.
-    inversion H2; subst.
-    inversion H5; subst.
-    assert (st'0 = (update st Y (st Y))).
-*)
-Admitted.
 (** **** Exercise: 4 stars, optional (havoc_copy) *)
 (** Are the following two programs equivalent? *)
 
