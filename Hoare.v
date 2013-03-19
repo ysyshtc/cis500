@@ -1070,7 +1070,13 @@ Inductive ceval : com -> state -> state -> Prop :=
                   c1 / st || st' ->
                   (WHILE b1 DO c1 END) / st' || st'' ->
                   (WHILE b1 DO c1 END) / st || st''
-(* FILL IN HERE *)
+  | E_If1True : forall (st st' : state) (b:exp) (c:com),
+                beval st b = true ->
+                c / st || st' ->
+                (IF1 b THEN c FI) / st || st'
+  | E_If1False : forall (st:state) (b:exp) (c:com),
+                 beval st b = false ->
+                 (IF1 b THEN c FI) / st || st
 
   where "c1 '/' st '||' st'" := (ceval c1 st st').
 
@@ -1079,7 +1085,7 @@ Tactic Notation "ceval_cases" tactic(first) ident(c) :=
   [ Case_aux c "E_Skip" | Case_aux c "E_Ass" | Case_aux c "E_Seq"
   | Case_aux c "E_IfTrue" | Case_aux c "E_IfFalse"
   | Case_aux c "E_WhileEnd" | Case_aux c "E_WhileLoop"
-  (* FILL IN HERE *)
+  | Case_aux c "E_If1True" | Case_aux c "E_If1False"
   ].
 
 (** Now we repeat (verbatim) the definition and notation of Hoare triples. *)
@@ -1100,6 +1106,7 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q)
     both sound and as precise as possible. *)
 
 (* FILL IN HERE *)
+(* TODO *)
 
 (** For full credit, prove formally that your rule is precise enough
     to show the following valid Hoare triple:
