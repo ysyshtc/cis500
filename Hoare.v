@@ -1139,7 +1139,43 @@ Qed.
 (** Hint: Your proof of this triple may need to use the other proof
     rules also. Because we're working in a separate module, you'll
     need to copy here the rules you find necessary. *)
+Definition assn_sub X a P : Assertion :=
+  fun (st : state) =>
+    P (update st X (aeval st a)).
 
+Theorem hoare_asgn : forall Q X a,
+  {{Q [X |-> a]}} (X ::= a) {{Q}}.
+Proof.
+  unfold hoare_triple.
+  intros Q X a st st' HE HQ.
+  inversion HE. subst.
+  unfold assn_sub in HQ. assumption.  Qed.
+
+Theorem hoare_consequence_pre : forall (P P' Q : Assertion) c,
+  {{P'}} c {{Q}} ->
+  P ->> P' ->
+  {{P}} c {{Q}}.
+Proof.
+  intros P P' Q c Hhoare Himp.
+  intros st st' Hc HP. apply (Hhoare st st'). 
+  assumption. apply Himp. assumption. Qed.
+
+Theorem hoare_consequence_post : forall (P Q Q' : Assertion) c,
+  {{P}} c {{Q'}} ->
+  Q' ->> Q ->
+  {{P}} c {{Q}}.
+Proof.
+  intros P Q Q' c Hhoare Himp.
+  intros st st' Hc HP. 
+  apply Himp.
+  apply (Hhoare st st'). 
+  assumption. assumption. Qed.
+
+Theorem hoare_skip : forall P,
+     {{P}} SKIP {{P}}.
+Proof.
+  intros P st st' H HP. inversion H. subst.
+  assumption.  Qed.
 
 Lemma hoare_if1_good :
   {{ fun st => st X + st Y = st Z }}
@@ -1147,8 +1183,32 @@ Lemma hoare_if1_good :
     X ::= APlus (AId X) (AId Y)
   FI
   {{ fun st => st X = st Z }}.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.
+  apply hoare_if1.
+  Case "Then".
+    eapply hoare_consequence_pre. apply hoare_asgn.
+    unfold bassn, assn_sub, update, assert_implies.
+    simpl. intros st H. apply H.
+  Case "Nop".
+    unfold hoare_triple.
+    intros st st' Hc Hb.
+    inversion Hc; subst.
+    inversion Hb. rewrite <- H. admit. (* TODO *)
+(*    apply bexp_eval_false in H0.
 
+    apply bexp_eval_true in H0.
+    unfold bassn in H0. 
+    apply bex
+    apply hoare_skip.
+    eapply hoare_consequence_post. apply hoare_asgn.
+    eapply hoare_consequence_pre. 
+    eapply hoare_skip.
+    apply hoare_asgn.
+    simpl. intros.
+    unfold hoare_triple.
+    apply H.
+    unfold bassn, assn_sub, update, assert_implies.
+*) Qed.
 End If1.
 (** [] *)
 
