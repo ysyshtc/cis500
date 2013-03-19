@@ -432,8 +432,6 @@ Theorem hoare_asgn_example2 : forall X,
   (X ::= ANum 3)
   {{ fun st => 0 <= st X /\ st X <= 5 }}.
 Proof. intros. apply hoare_asgn. Qed.
-
-  
 (** [] *)
 
 (** **** Exercise: 2 stars (hoare_asgn_wrong) *)
@@ -448,7 +446,10 @@ Proof. intros. apply hoare_asgn. Qed.
     arithmetic expression [a], and your counterexample needs to
     exhibit an [a] for which the rule doesn't work. *)
 
-(* FILL IN HERE *)
+(* If we let [a] be [APlus (AId X) (ANum 1)], then [X] will be 
+ * incremented by [1] but the final state Prop will ask if [X = X + 1],
+ * which clearly it will not.
+ *)
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (hoare_asgn_fwd) *)
