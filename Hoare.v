@@ -421,13 +421,13 @@ Proof.
        {{ 0 <= X /\ X <= 5 }}
    ...into formal statements and use [hoare_asgn] to prove them. *)
 
-Theorem hoare_asgn_example1 : forall X,
+Theorem hoare_asgn_x3_x3 : forall X,
   {{ (fun st => st X <= 5) [X |-> APlus (AId X) (ANum 1)] }}
   (X ::= APlus (AId X) (ANum 1))
   {{ fun st => st X <= 5 }}.
 Proof. intros. apply hoare_asgn. Qed.
 
-Theorem hoare_asgn_example2 : forall X,
+Theorem hoare_asgn_0x5_0x5 : forall X,
   {{ (fun st => 0 <= st X /\ st X <= 5) [X |-> ANum 3] }}
   (X ::= ANum 3)
   {{ fun st => 0 <= st X /\ st X <= 5 }}.
@@ -695,8 +695,26 @@ Qed.
        {{ 0 <= 3 /\ 3 <= 5 }}  X ::= 3  {{ 0 <= X /\ X <= 5 }}
    ...into formal statements and use [hoare_asgn] and
    [hoare_consequence_pre] to prove them. *)
+Theorem hoare_asgn_examples_2a : 
+  {{ fun st => st X + 1 <= 5 }}
+  (X ::= APlus (AId X) (ANum 1))
+  {{ fun st => st X <= 5 }}.
+Proof. intros.
+  eapply hoare_consequence_pre.
+  apply hoare_asgn.
+  intros st H. apply H.
+Qed.
 
-(* FILL IN HERE *)
+Theorem hoare_asgn_examples_2b :
+  {{ fun st => 0 <= 3 /\ 3 <= 5 }}
+  (X ::= ANum 3)
+  {{ fun st => 0 <= st X /\ st X <= 5 }}.
+Proof.
+  eapply hoare_consequence_pre.
+  apply hoare_asgn.
+  intros st H.
+  apply H.
+Qed.
 (** [] *)
 
 (* ####################################################### *)
