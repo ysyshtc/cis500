@@ -852,8 +852,12 @@ Qed.
          (X ::= (ANum 3); Y ::= a)
          {{fun st => st Y = n}}.
 *)
+(** Answer: You will not be able to show, after [X ::= (ANum 3)], 
+    that [aeval st a = n] still. This is because it's possible that
+    [a] contained a reference to [X], which would have changed after the
+    first statement in the sequence.
+*)
 
-(* FILL IN HERE *)
 (** [] *)
 
 (* ####################################################### *) 
