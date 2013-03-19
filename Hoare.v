@@ -824,14 +824,32 @@ Qed.
 *)
 
 Definition swap_program : com :=
-  (* FILL IN HERE *) admit.
+  X ::= APlus (AId X) (AId Y);
+  Y ::= AMinus (AId X) (AId Y);
+  X ::= AMinus (AId X) (AId Y).
 
 Theorem swap_exercise :
   {{fun st => st X <= st Y}} 
   swap_program
   {{fun st => st Y <= st X}}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  eapply hoare_seq.
+  Case "left".
+(*    eapply hoare_seq.
+    eapply hoare_consequence_post.
+     apply hoare_asgn. intros st H. apply H.*)
+
+    eapply hoare_seq;
+    (eapply hoare_consequence_post;
+     [apply hoare_asgn | intros st H; apply H]).
+  Case "right". admit. Qed.
+(*    apply hoare_asgn.
+unfold assn_sub.
+    eapply hoare_consequence_pre.
+    eapply hoare_consequence_post.
+    apply hoare_asgn. intros st H. apply H.
+    intros st H. apply hoare_asgn. intros st H. apply H.*)
+(* TODO *)
 (** [] *)
 
 (** **** Exercise: 3 stars (hoarestate1) *)
@@ -955,6 +973,9 @@ Qed.
 
 (** **** Exercise: 2 stars (if_minus_plus) *)
 (** Prove the following hoare triple using [hoare_if]: *)
+(*Theorem test_omega : forall x y,
+  y = x + (y - x).
+Proof. intros. rewrite NPeano.Nat.add_sub_assoc. omega.*)
 
 Theorem if_minus_plus :
   {{fun st => True}}
@@ -964,7 +985,20 @@ Theorem if_minus_plus :
   FI
   {{fun st => st Y = st X + st Z}}. 
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply hoare_if.
+  Case "Then".
+    eapply hoare_consequence_pre.
+    apply hoare_asgn. 
+    unfold bassn, assn_sub, update, assert_implies.
+    simpl. intros st [_ H].
+    apply ble_nat_true in H.
+    eapply NPeano.Nat.add_sub_assoc in H.
+    rewrite H. omega.
+  Case "Else".
+    eapply hoare_consequence_pre. apply hoare_asgn.
+    unfold assn_sub, assert_implies, update. simpl.
+    intros st _. reflexivity.
+Qed.
 
 (* ####################################################### *)
 (** *** Exercise: One-sided conditionals *)
