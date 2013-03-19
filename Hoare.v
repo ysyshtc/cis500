@@ -1070,11 +1070,11 @@ Inductive ceval : com -> state -> state -> Prop :=
                   c1 / st || st' ->
                   (WHILE b1 DO c1 END) / st' || st'' ->
                   (WHILE b1 DO c1 END) / st || st''
-  | E_If1True : forall (st st' : state) (b:exp) (c:com),
+  | E_If1True : forall (st st' : state) (b:bexp) (c:com),
                 beval st b = true ->
                 c / st || st' ->
                 (IF1 b THEN c FI) / st || st'
-  | E_If1False : forall (st:state) (b:exp) (c:com),
+  | E_If1False : forall (st:state) (b:bexp) (c:com),
                  beval st b = false ->
                  (IF1 b THEN c FI) / st || st
 
@@ -1105,7 +1105,26 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q)
     for one-sided conditionals. Try to come up with a rule that is
     both sound and as precise as possible. *)
 
-(* FILL IN HERE *)
+Theorem hoare_if1 : forall P Q b c,
+  {{fun st => P st /\ bassn b st}} c {{Q}} ->
+  {{fun st => P st /\ ~(bassn b st)}} SKIP {{Q}} ->
+  {{P}} (IF1 b THEN c FI) {{Q}}.
+Proof.
+  intros P Q b c HTrue HFalse st st' HE HP.
+  inversion HE; subst.
+  Case "b = true".
+    apply (HTrue st st').
+      assumption. split.
+        assumption.
+        apply bexp_eval_true. assumption.
+  Case "b = false".
+    apply (HFalse st').
+    apply E_Skip.
+    split.
+      assumption.
+      apply bexp_eval_false. assumption.
+Qed.
+  
 (* TODO *)
 
 (** For full credit, prove formally that your rule is precise enough
