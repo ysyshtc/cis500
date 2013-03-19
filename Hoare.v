@@ -835,21 +835,14 @@ Theorem swap_exercise :
 Proof.
   eapply hoare_seq.
   Case "left".
-(*    eapply hoare_seq.
-    eapply hoare_consequence_post.
-     apply hoare_asgn. intros st H. apply H.*)
-
     eapply hoare_seq;
     (eapply hoare_consequence_post;
      [apply hoare_asgn | intros st H; apply H]).
-  Case "right". admit. Qed.
-(*    apply hoare_asgn.
-unfold assn_sub.
-    eapply hoare_consequence_pre.
-    eapply hoare_consequence_post.
-    apply hoare_asgn. intros st H. apply H.
-    intros st H. apply hoare_asgn. intros st H. apply H.*)
-(* TODO *)
+  Case "right".
+    eapply hoare_consequence_pre. apply hoare_asgn.
+    intros st H.
+    unfold assert_implies, assn_sub, update. simpl. omega.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (hoarestate1) *)
