@@ -774,21 +774,19 @@ Proof.
 
     Fill in the blanks in following decorated program:
     {{ X = m }} ->>
-    {{ 1 = (m-X)! }}
+    {{ 1*X! = m! }}
   Y ::= 1;
-    {{ Y = (m-X)! }}
+    {{ Y*X! = m! }}
   WHILE X <> 0
-  DO   {{ Y = (m-X)! /\ X <> 0 }} ->>
-       {{ Y*X = (m-(X-1))! }}
+  DO   {{ Y*X! = m! /\ X <> 0 }} ->>
+       {{ Y*X*(X-1)! = m! }}
      Y ::= Y * X;
-       {{ Y = (m-(X-1))! }}
+       {{ Y*(X-1)! = m! }}
      X ::= X - 1
-       {{ Y = (m-X)! }}
+       {{ Y*X! = m! }}
   END
-    {{ Y = (m-X)! /\ X = 0 }} ->>
+    {{ Y*X! = m! /\ X = 0 }} ->>
     {{ Y = m! }}
-
-TODO
 *)
 
 
@@ -808,24 +806,24 @@ TODO
   plus, as usual, standard high-school algebra.
 
   {{ True }} ->>
-  {{                    }}
+  {{ ((I/Z/0)/Y/b)/X/a }}
   X ::= a;
-  {{                       }}
+  {{ (I/Z/0)/Y/b }}
   Y ::= b;
-  {{                       }}
+  {{ I/Z/0 }}
   Z ::= 0;
-  {{                       }}
+  {{ I }}
   WHILE (X <> 0 /\ Y <> 0) DO
-  {{                                     }} ->>
-  {{                                }}
+  {{ I /\ (X <> 0 /\ Y <> 0) }} ->>
+  {{ ((I/Z/Z+1)/Y/Y-1)/X/X-1 }}
   X := X - 1;
-  {{                            }}
+  {{ (I/Z/Z+1)/Y/Y-1 }}
   Y := Y - 1;
-  {{                        }}
+  {{ I/Z/Z+1 }}
   Z := Z + 1;
-  {{                       }}
+  {{ I }}
   END
-  {{                            }} ->>
+  {{ I /\ ~(X <> 0 /\ Y <> 0) }} ->>
   {{ Z = min a b }}
 *)
 
