@@ -806,24 +806,26 @@ Proof.
   plus, as usual, standard high-school algebra.
 
   {{ True }} ->>
-  {{ ((I/Z/0)/Y/b)/X/a }}
+  {{ 0 = (min a b) - (min a b) }}
   X ::= a;
-  {{ (I/Z/0)/Y/b }}
+  {{ 0 = min a b - (min X b) }}
   Y ::= b;
-  {{ I/Z/0 }}
+  {{ 0 = (min a b) - (min X Y) }}
   Z ::= 0;
-  {{ I }}
+  {{ Z = (min a b) - (min X Y) }}
   WHILE (X <> 0 /\ Y <> 0) DO
-  {{ I /\ (X <> 0 /\ Y <> 0) }} ->>
-  {{ ((I/Z/Z+1)/Y/Y-1)/X/X-1 }}
+  {{ Z = (min a b) - (min X Y) /\ (X <> 0 /\ Y <> 0) }} ->>
+  {{ Z + 1 = (min a b) - (min X Y) + 1 }} =
+  {{ Z + 1 = (min a b) - (min (X-1) (Y-1)) }}
   X := X - 1;
-  {{ (I/Z/Z+1)/Y/Y-1 }}
+  {{ Z + 1 = (min a b) - (min X (Y-1)) }}
   Y := Y - 1;
-  {{ I/Z/Z+1 }}
+  {{ Z + 1 = (min a b) - (min X Y) }}
   Z := Z + 1;
-  {{ I }}
+  {{ Z = (min a b) - (min X Y) }}
   END
-  {{ I /\ ~(X <> 0 /\ Y <> 0) }} ->>
+  {{ Z = (min a b) - (min X Y) /\ ~(X <> 0 /\ Y <> 0) }} =
+  {{ Z = (min a b) - (min X Y) /\ (X = 0 \/ Y = 0) }} ->>
   {{ Z = min a b }}
 *)
 
