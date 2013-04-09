@@ -672,7 +672,7 @@ Inductive step : tm -> tm -> Prop :=
 Definition bool_step_prop1 :=
   tfalse ==> tfalse.
 
-(* FILL IN HERE *)
+(* Not provable *)
 
 Definition bool_step_prop2 :=
      tif
@@ -682,7 +682,7 @@ Definition bool_step_prop2 :=
   ==> 
      ttrue.
 
-(* FILL IN HERE *)
+(* Not provable *)
 
 Definition bool_step_prop3 :=
      tif
@@ -695,7 +695,11 @@ Definition bool_step_prop3 :=
        (tif ttrue ttrue ttrue)
        tfalse.
 
-(* FILL IN HERE *)
+Theorem test : bool_step_prop3.
+Proof.
+  unfold bool_step_prop3.
+  apply ST_If. apply ST_IfTrue.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (progress_bool) *)
@@ -746,7 +750,8 @@ Inductive step : tm -> tm -> Prop :=
   | ST_If : forall t1 t1' t2 t3,
       t1 ==> t1' ->
       tif t1 t2 t3 ==> tif t1' t2 t3
-(* FILL IN HERE *)
+  | ST_ShortCircuit : forall t1 t2,
+      tif t1 t2 t2 ==> t2
 
   where " t '==>' t' " := (step t t').
 (** [] *)
@@ -762,7 +767,9 @@ Definition bool_step_prop4 :=
 Example bool_step_prop4_holds : 
   bool_step_prop4.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold bool_step_prop4.
+  apply ST_ShortCircuit.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (properties_of_altered_step) *)
@@ -963,7 +970,18 @@ Lemma test_multistep_4:
         (C 0)
         (C (2 + (0 + 3))).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  eapply multi_step.
+    apply ST_Plus2.
+      apply v_const.
+      apply ST_Plus2.
+        apply v_const.
+        apply ST_PlusConstConst.
+  eapply multi_step.
+    apply ST_Plus2.
+      apply v_const.
+      apply ST_PlusConstConst.
+  apply multi_refl.
+Qed.
 (** [] *)
 
 (* ########################################################### *)
