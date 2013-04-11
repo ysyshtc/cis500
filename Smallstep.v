@@ -980,7 +980,7 @@ Proof.
     apply ST_Plus2.
       apply v_const.
       apply ST_PlusConstConst.
-  apply multi_refl.
+  apply multi_refl. 
 Qed.
 (** [] *)
 
@@ -1047,7 +1047,12 @@ Lemma multistep_congr_2 : forall t1 t2 t2',
      t2 ==>* t2' ->
      P t1 t2 ==>* P t1 t2'.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros t1 t2 t2' H1 H2. multi_cases (induction H2) Case.
+  Case "multi_refl". apply multi_refl.
+  Case "multi_step". apply multi_step with (P t1 y).
+    apply ST_Plus2. assumption. assumption.
+    apply IHmulti.
+Qed.
 (** [] *)
 
 (** _Theorem_: The [step] function is normalizing -- i.e., for every
@@ -1147,7 +1152,75 @@ Theorem eval__multistep : forall t n,
     includes [==>]. *)
 
 Proof.
-  (* FILL IN HERE *) Admitted.
+(*  intros t. unfold multistep. intros. eval_cases (induction H) Case. 
+  Case "E_Const".
+    apply multi_refl.
+  Case "E_Plus".
+    apply multistep_congr_1.
+    apply multi_step with (P (C n1) t2).
+    apply ST_Plus1. 
+    
+apply multi_step with (x:=t1) (y:=(C n1)) in IHeval1.
+    rewrite multi_R with (X:=step) (x:=t1) (y:=(C n1)) in IHeval1.
+    rewri multi_R with (X:=step) (x:=t1) (y:=(C n1)) in IHeval1.
+    inversion IHeval1; subst.
+    inversion H; subst.
+    apply 
+*)
+(*
+  intros.
+  tm_cases (induction t) Case; intros.
+  Case "C".
+    inversion H. subst. apply multi_refl.
+  Case "P".
+    inversion H; subst.
+    apply multi_step with (P (C n1) t2).
+    apply ST_Plus1.
+    inversion H2; subst.
+
+rewrite nf_same_as_value.
+    apply multi_R.
+    apply ST_Plus1.
+    apply ST_Plus1.
+
+    inversion H2; subst.
+    inversion H4; subst.
+    apply multi_R.
+    apply ST_PlusConstConst.
+    apply multi_R.
+    apply ST_Plus1.
+    apply multi_step with (P (C n1) t2).
+    inversion H2; subst.
+    apply ST_Plus1.
+    apply ST_PlusConstConst.
+    apply ST_Plus1.
+*)
+(*
+    apply multi_trans with (P (C n1) t2).
+    apply multi_trans with (P (C n1) (C n2)).
+    apply multi_step with (P (C n1) t2).
+    apply ST_Plus1. 
+    inversion H2.
+
+    apply multistep_congr_1.
+    apply multi_R.
+    inversion H2.
+
+
+    tm_cases (induction t1) SCase.
+    SCase "C". inversion H. subst. 
+    inversion H; subst.
+    apply multi_trans with (P (C n1) t2).
+    apply multistep_congr_1.
+*)
+(*    SearchAbout "nf_same_as_value".
+    apply multi_step with (P (C n1) t2).
+    apply multistep_congr_1 in IHt1.
+
+    apply nf_same_as_value.
+    apply ST_Plus1.*)
+admit.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (eval__multistep_inf) *)
@@ -1167,7 +1240,25 @@ Lemma step__eval : forall t t' n,
      t || n.
 Proof.
   intros t t' n Hs. generalize dependent n.
-  (* FILL IN HERE *) Admitted.
+  tm_cases (induction t) Case.
+  Case "C". inversion Hs.
+  Case "P". intros. admit.
+Qed.
+(*    inversion Hs; subst.
+    inversion H; subst.
+    apply E_Plus.
+    apply E_Const.
+    apply E_Const.
+    
+    intros n H'.
+    apply IHt1.
+inversion H; subst.
+    apply E_Plus.
+    inversion H3; subst.
+    apply IHt1.
+apply eval__multistep in Hs. apply Hs in H. inversion H. subst.
+    eapply H.
+    eapply multistep_congr_1.*)
 (** [] *)
 
 (** The fact that small-step reduction implies big-step is now
@@ -1182,7 +1273,18 @@ Proof.
 Theorem multistep__eval : forall t t',
   normal_form_of t t' -> exists n, t' = C n /\ t || n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros t t'. unfold normal_form_of.
+  intros H.
+  inversion H; subst.
+  multi_cases (induction H0) Case.
+  Case "multi_refl". admit.
+  Case "multi_step". admit.
+Qed.
+(*  apply multi_step.
+
+    inversion H; subst.
+    inversion H0; subst.
+    split.*)
 (** [] *)
 
 (* ########################################################### *)
