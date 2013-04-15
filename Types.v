@@ -593,11 +593,10 @@ Proof.
     and [|- t' \in T], then [|- t \in T]?  If so, prove it.  If
     not, give a counter-example.  (You do not need to prove your
     counter-example in Coq, but feel free to do so if you like.) *)
-Theorem subj_expansion : forall t t' T,
-  |- t' \in T ->
-  t ==> t' ->
-  |- t \in T.
-Proof with auto. admit. Qed.
+
+(* Counterexample: if true then 0 else false 
+ * The statement steps to 0, which is well-typed, but this statement is not.
+ *)
 (* [] *)
 
 
@@ -615,9 +614,11 @@ Proof with auto. admit. Qed.
       - Determinism of [step]
           remains true
       - Progress
-          (* TODO *)
+          becomes false:
+          [tsucc ttrue] is not a value, since [ttrue] isn't a nvalue,
+          but [tsucc ttrue] also doesn't step to anything.
       - Preservation
-
+          remains true
 []
 *)
 
