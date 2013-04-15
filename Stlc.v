@@ -374,15 +374,94 @@ where "'[' x ':=' s ']' t" := (subst x s t).
 Inductive substi (s:tm) (x:id) : tm -> tm -> Prop := 
   | s_var1 : 
       substi s x (tvar x) s
-  (* FILL IN HERE *)
+  | s_var2 : forall y,
+       x <> y ->
+      substi s x (tvar y) (tvar y)
+  | s_abs1 : forall T t,
+      substi s x (tabs x T t) (tabs x T t)
+  | s_abs2 : forall y T t t',
+      x <> y ->
+      substi s x t t' ->
+      substi s x (tabs y T t) (tabs y T t')
+  | s_app : forall t1 t2 t1' t2',
+      substi s x t1 t1' ->
+      substi s x t2 t2' ->
+      substi s x (tapp t1 t2) (tapp t1' t2')
+  | s_true :
+      substi s x ttrue ttrue
+  | s_false :
+      substi s x tfalse tfalse
+  | s_if : forall t1 t2 t3 t1' t2' t3',
+      substi s x t1 t1' ->
+      substi s x t2 t2' ->
+      substi s x t3 t3' ->
+      substi s x (tif t1 t2 t3) (tif t1' t2' t3')
 .
+
+Tactic Notation "substi_cases" tactic(first) ident(c) :=
+  first;
+  [ Case_aux c "s_var1" | Case_aux c "s_var2" 
+  | Case_aux c "s_abs1" | Case_aux c "s_abs2" 
+  | Case_aux c "s_app" | Case_aux c "s_true" 
+  | Case_aux c "s_false" | Case_aux c "s_if" ].
+
 
 Hint Constructors substi.
 
 Theorem substi_correct : forall s x t t',
   [x:=s]t = t' <-> substi s x t t'.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros s x t t'. split.
+  Case "->". admit.
+(*
+    t_cases (induction t) SCase; intros.
+    SCase "tvar".
+      unfold subst in H.
+      remember (beq_id x i) as H1.
+      destruct H1.
+      SSCase "x = i".
+        rewrite H. 
+        apply beq_id_eq in HeqH1.
+        rewrite HeqH1. apply s_var1.
+      SSCase "x <> i".
+        rewrite <- H. symmetry in HeqH1. apply beq_id_false_not_eq in HeqH1.
+        auto.
+    SCase "tapp". admit.
+*)
+(*      simpl in H.
+      rewrite <- H.
+      apply s_app.
+      eapply IHt1.
+
+      apply s_app. apply IHt1.*)
+(*
+    SCase "tabs".
+      simpl in H.
+      remember (beq_id x i) as HId.
+      destruct HId.
+      SSCase "x = i".
+        rewrite <- H.
+        apply beq_id_eq in HeqHId. rewrite HeqHId.
+        apply s_abs1.
+      SSCase "x <> i".
+        rewrite <- H. symmetry in HeqHId. apply beq_id_false_not_eq in HeqHId.
+        rewrite <- H in IHt.
+        apply s_abs2. assumption.
+*)
+  Case "->".
+    intros.
+    substi_cases (induction H) SCase; simpl.
+    SCase "s_var1". rewrite <- beq_id_refl. reflexivity.
+    SCase "s_var2". rewrite not_eq_beq_id_false. reflexivity. assumption.
+    SCase "s_abs1". rewrite <- beq_id_refl. reflexivity.
+    SCase "s_abs2".
+      rewrite not_eq_beq_id_false. rewrite IHsubsti. reflexivity. assumption.
+    SCase "s_app". rewrite IHsubsti1. rewrite IHsubsti2. reflexivity.
+    SCase "s_true". reflexivity.
+    SCase "s_false". reflexivity.
+    SCase "s_if".
+      rewrite IHsubsti1. rewrite IHsubsti2. rewrite IHsubsti3. reflexivity.
+Qed.
 (** [] *)
 
 (* ################################### *)
@@ -563,9 +642,13 @@ Lemma step_example5 :
        (tapp (tapp idBBBB idBB) idB)
   ==>* idB.
 Proof.
-  (* FILL IN HERE *) Admitted.
-
-(* FILL IN HERE *)
+  eapply multi_step.
+    apply ST_App1.
+    apply ST_AppAbs. auto. simpl.
+  eapply multi_step.
+   apply ST_AppAbs. auto. simpl.
+  apply multi_refl.
+Qed.
 (** [] *)
 
 (* ###################################################################### *)
@@ -730,7 +813,8 @@ Example typing_example_2_full :
           (tapp (tvar y) (tapp (tvar y) (tvar x))))) \in
     (TArrow TBool (TArrow (TArrow TBool TBool) TBool)).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  Admitted.
+(* FILL IN HERE *)
 (** [] *)
 
 (** **** Exercise: 2 stars (typing_example_3) *)
@@ -750,7 +834,20 @@ Example typing_example_3 :
                (tapp (tvar y) (tapp (tvar x) (tvar z)))))) \in
       T.
 Proof with auto.
-  (* FILL IN HERE *) Admitted.
+  exists (TArrow 
+            (TArrow TBool TBool)
+            (TArrow
+               (TArrow TBool TBool)
+               (TArrow 
+                  TBool
+                  TBool))).
+  apply T_Abs.
+  apply T_Abs.
+  apply T_Abs.
+  eapply T_App. apply T_Var. reflexivity.
+  eapply T_App. apply T_Var. reflexivity.
+  apply T_Var. reflexivity.
+Qed.
 (** [] *)
 
 (** We can also show that terms are _not_ typable.  For example, let's
