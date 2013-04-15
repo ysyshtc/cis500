@@ -448,7 +448,7 @@ Proof.
         rewrite <- H in IHt.
         apply s_abs2. assumption.
 *)
-  Case "->".
+  Case "<-".
     intros.
     substi_cases (induction H) SCase; simpl.
     SCase "s_var1". rewrite <- beq_id_refl. reflexivity.
