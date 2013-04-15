@@ -592,11 +592,13 @@ Proof.
     also holds.  That is, is it always the case that, if [t ==> t']
     and [|- t' \in T], then [|- t \in T]?  If so, prove it.  If
     not, give a counter-example.  (You do not need to prove your
-    counter-example in Coq, but feel free to do so if you like.)
-
-    (* FILL IN HERE *)
-[]
-*)
+    counter-example in Coq, but feel free to do so if you like.) *)
+Theorem subj_expansion : forall t t' T,
+  |- t' \in T ->
+  t ==> t' ->
+  |- t \in T.
+Proof with auto. admit. Qed.
+(* [] *)
 
 
 
@@ -611,9 +613,9 @@ Proof.
    else "becomes false." If a property becomes false, give a
    counterexample.
       - Determinism of [step]
-
+          remains true
       - Progress
-
+          (* TODO *)
       - Preservation
 
 []
