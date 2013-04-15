@@ -411,15 +411,6 @@ Proof with auto.
         SSSCase "n+1". exists tfalse...
     SCase "steps". inversion H as [t1' H1]. exists (tiszero t1')...
 Qed.
-    
-(* TODO *)
-  (* FILL IN HERE *) Admitted.
-
-
-
-
-
-
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (finish_progress_informal) *)
@@ -507,7 +498,13 @@ Proof with auto.
       SCase "ST_IfFalse". assumption.
       SCase "ST_If". apply T_If; try assumption.
         apply IHHT1; assumption.
-    (* FILL IN HERE *) Admitted.
+    Case "T_Succ". inversion HE; subst...
+    Case "T_Pred". inversion HE; subst.
+      SCase "ST_PredZero". assumption.
+      SCase "ST_PredSucc". inversion HT; subst. assumption.
+      SCase "ST_Pred". auto.
+    Case "T_Iszero". inversion HE; subst; auto.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (finish_preservation_informal) *)
