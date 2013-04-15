@@ -611,14 +611,11 @@ Proof.
    this rule?  For each one, write either "remains true" or
    else "becomes false." If a property becomes false, give a
    counterexample.
-      - Determinism of [step]
-          remains true
-      - Progress
-          becomes false:
+      - Determinism of [step] remains true
+      - Progress becomes false:
           [tsucc ttrue] is not a value, since [ttrue] isn't a nvalue,
           but [tsucc ttrue] also doesn't step to anything.
-      - Preservation
-          remains true
+      - Preservation remains true
 []
 *)
 
@@ -629,6 +626,10 @@ Proof.
    Which of the above properties become false in the presence of
    this rule?  For each one that does, give a counter-example.
 
+   - Determinism becomes false: [if ttrue 0 1] can now step to 0 *or* 1 (since
+     we still have [ST_IfTrue].
+   - Progress remains true.
+   - Preservation remains true.
 []
 *)
 
@@ -692,7 +693,8 @@ Proof.
     achieve this simply by removing the rule from the definition of
     [step]?  Would doing so create any problems elsewhere? 
 
-(* FILL IN HERE *)
+(* No - this would make progress invalid, because [tpred tzero] would be well
+   typed but would neither be a value or would step to anything. *)
 [] *)
 
 (** **** Exercise: 4 stars, advanced (prog_pres_bigstep) *)
