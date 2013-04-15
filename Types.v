@@ -190,7 +190,18 @@ Hint Unfold stuck.
 Example some_term_is_stuck :
   exists t, stuck t.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold stuck.
+  exists (tsucc ttrue).
+  split.
+  Case "left".
+    unfold normal_form. 
+    intros contra. inversion contra.
+    inversion H. inversion H1.
+  Case "right".
+    intros contra.
+    inversion contra.
+    inversion H. inversion H. inversion H1.
+Qed. (* TODO: Clean up. *)
 (** [] *)
 
 (** However, although values and normal forms are not the same in this
@@ -336,7 +347,8 @@ Example succ_hastype_nat__hastype_nat : forall t,
   |- tsucc t \in TNat ->
   |- t \in TNat.  
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros t H. inversion H. apply H1.
+Qed.
 (** [] *)
 
 (* ###################################################################### *)
@@ -372,7 +384,42 @@ Proof with auto.
     SCase "t1 can take a step".
       inversion H as [t1' H1].
       exists (tif t1' t2 t3)...
+  Case "T_Succ".
+    inversion IHHT; clear IHHT.
+    SCase "value t1". left. inversion H; clear H.
+      SSCase "bvalue t1". solve by inversion 2.
+      SSCase "nvalue t1". inversion H0...
+    SCase "step t1". 
+      right. inversion H as [t1' H1].
+      exists (tsucc t1')...
+  Case "T_Pred".
+    inversion IHHT; clear IHHT; right.
+    SCase "value t1". inversion H; clear H.
+      SSCase "bvalue t1". solve by inversion 2.
+      SSCase "nvalue t1". inversion H0.
+        SSSCase "t1 = 0". exists (tzero)...
+        SSSCase "t1 = t + 1". exists t...
+    SCase "step t1".
+      inversion H as [t1' H1].
+      exists (tpred t1')...
+  Case "T_Iszero".
+    inversion IHHT; clear IHHT; right.
+    SCase "value t1". inversion H; clear H.
+      SSCase "bvalue". solve by inversion 2.
+      SSCase "nvalue". inversion H0.
+        SSSCase "0". exists ttrue...
+        SSSCase "n+1". exists tfalse...
+    SCase "steps". inversion H as [t1' H1]. exists (tiszero t1')...
+Qed.
+    
+(* TODO *)
   (* FILL IN HERE *) Admitted.
+
+
+
+
+
+
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (finish_progress_informal) *)
