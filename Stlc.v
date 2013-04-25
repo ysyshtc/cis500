@@ -264,9 +264,9 @@ Notation notB := (tabs x TBool (tif (tvar x) tfalse ttrue)).
 Inductive value : tm -> Prop :=
   | v_abs : forall x T t,
       value (tabs x T t)
-  | t_true : 
+  | v_true : 
       value ttrue
-  | t_false : 
+  | v_false : 
       value tfalse.
 
 Hint Constructors value.
@@ -374,22 +374,23 @@ where "'[' x ':=' s ']' t" := (subst x s t).
 Inductive substi (s:tm) (x:id) : tm -> tm -> Prop := 
   | s_var1 : 
       substi s x (tvar x) s
-  | s_var2 : forall y,
-       x <> y ->
-      substi s x (tvar y) (tvar y)
-  | s_abs1 : forall T t,
-      substi s x (tabs x T t) (tabs x T t)
-  | s_abs2 : forall y T t t',
-      x <> y ->
-      substi s x t t' ->
-      substi s x (tabs y T t) (tabs y T t')
+  (* SOLUTION: *)
+  | s_var2 : forall x', 
+      beq_id x x' = false -> 
+      substi s x (tvar x') (tvar x')
+  | s_abs1 : forall T t1,
+      substi s x (tabs x T t1) (tabs x T t1)
+  | s_abs2 : forall x' T t1 t1',
+      beq_id x x' = false -> 
+      substi s x t1 t1' ->
+      substi s x (tabs x' T t1) (tabs x' T t1')
   | s_app : forall t1 t2 t1' t2',
       substi s x t1 t1' ->
       substi s x t2 t2' ->
       substi s x (tapp t1 t2) (tapp t1' t2')
-  | s_true :
+  | s_true : 
       substi s x ttrue ttrue
-  | s_false :
+  | s_false : 
       substi s x tfalse tfalse
   | s_if : forall t1 t2 t3 t1' t2' t3',
       substi s x t1 t1' ->
@@ -398,71 +399,53 @@ Inductive substi (s:tm) (x:id) : tm -> tm -> Prop :=
       substi s x (tif t1 t2 t3) (tif t1' t2' t3')
 .
 
-Tactic Notation "substi_cases" tactic(first) ident(c) :=
-  first;
-  [ Case_aux c "s_var1" | Case_aux c "s_var2" 
-  | Case_aux c "s_abs1" | Case_aux c "s_abs2" 
-  | Case_aux c "s_app" | Case_aux c "s_true" 
-  | Case_aux c "s_false" | Case_aux c "s_if" ].
-
-
 Hint Constructors substi.
 
 Theorem substi_correct : forall s x t t',
   [x:=s]t = t' <-> substi s x t t'.
 Proof.
-  intros s x t t'. split.
-  Case "->". admit.
-(*
-    t_cases (induction t) SCase; intros.
+  (* SOLUTION: *)
+  intros s x t t'.
+  apply conj.
+  Case "->".
+    generalize dependent t'.
+    (t_cases (induction t) SCase); intros; unfold subst in H; subst; fold subst in *; auto.
     SCase "tvar".
-      unfold subst in H.
-      remember (beq_id x i) as H1.
-      destruct H1.
-      SSCase "x = i".
-        rewrite H. 
-        apply beq_id_eq in HeqH1.
-        rewrite HeqH1. apply s_var1.
-      SSCase "x <> i".
-        rewrite <- H. symmetry in HeqH1. apply beq_id_false_not_eq in HeqH1.
-        auto.
-    SCase "tapp". admit.
-*)
-(*      simpl in H.
-      rewrite <- H.
-      apply s_app.
-      eapply IHt1.
-
-      apply s_app. apply IHt1.*)
-(*
+      remember (beq_id x i) as b. destruct b. subst.
+        apply beq_id_eq in Heqb. subst. auto. 
+        subst. symmetry in Heqb. auto.
     SCase "tabs".
-      simpl in H.
-      remember (beq_id x i) as HId.
-      destruct HId.
-      SSCase "x = i".
-        rewrite <- H.
-        apply beq_id_eq in HeqHId. rewrite HeqHId.
-        apply s_abs1.
-      SSCase "x <> i".
-        rewrite <- H. symmetry in HeqHId. apply beq_id_false_not_eq in HeqHId.
-        rewrite <- H in IHt.
-        apply s_abs2. assumption.
-*)
+      remember (beq_id x i) as b. destruct b. subst.  
+        apply beq_id_eq in Heqb. subst. auto. 
+        symmetry in Heqb. auto.
   Case "<-".
-    intros.
-    substi_cases (induction H) SCase; simpl.
-    SCase "s_var1". rewrite <- beq_id_refl. reflexivity.
-    SCase "s_var2". rewrite not_eq_beq_id_false. reflexivity. assumption.
-    SCase "s_abs1". rewrite <- beq_id_refl. reflexivity.
-    SCase "s_abs2".
-      rewrite not_eq_beq_id_false. rewrite IHsubsti. reflexivity. assumption.
-    SCase "s_app". rewrite IHsubsti1. rewrite IHsubsti2. reflexivity.
-    SCase "s_true". reflexivity.
-    SCase "s_false". reflexivity.
-    SCase "s_if".
-      rewrite IHsubsti1. rewrite IHsubsti2. rewrite IHsubsti3. reflexivity.
-Qed.
-(** [] *)
+    generalize dependent t'.
+    (t_cases (induction t) SCase); 
+       intros; unfold subst; subst; fold subst in *; auto; 
+       try solve [inversion H; auto].
+    SCase "tvar".
+      remember (beq_id x i) as b. destruct b. subst.
+        apply beq_id_eq in Heqb. subst. inversion H. auto.
+        rewrite <- beq_id_refl in H1. inversion H1.
+        inversion H. subst.
+        rewrite <- beq_id_refl in Heqb. inversion Heqb.
+        auto. inversion H. subst. 
+        rewrite -> (IHt1 t1'). rewrite -> (IHt2 t2'). auto.
+        auto. auto.
+      remember (beq_id x i) as b. destruct b; subst. 
+    SCase "tabs".
+      inversion H; subst. auto. 
+      apply beq_id_eq in Heqb. subst.
+      rewrite <- beq_id_refl in H4. inversion H4.
+      inversion H; subst.
+      rewrite <- beq_id_refl in Heqb. inversion Heqb.
+      rewrite (IHt t1'). auto. auto.
+    SCase "tif".
+      inversion H; subst. 
+      rewrite (IHt1 t1'). rewrite (IHt2 t2'). rewrite (IHt3 t3').
+      reflexivity.
+      auto. auto. auto.  Qed.
+  (** [] *)
 
 (* ################################### *)
 (** *** Reduction *)
@@ -642,13 +625,22 @@ Lemma step_example5 :
        (tapp (tapp idBBBB idBB) idB)
   ==>* idB.
 Proof.
+  (* SOLUTION: *)
   eapply multi_step.
     apply ST_App1.
-    apply ST_AppAbs. auto. simpl.
+    apply ST_AppAbs. 
+    auto.
   eapply multi_step.
-   apply ST_AppAbs. auto. simpl.
-  apply multi_refl.
-Qed.
+    simpl.
+    apply ST_AppAbs. auto. 
+    simpl. 
+  apply multi_refl.  Qed.
+
+(* SOLUTION: *)
+Lemma step_example5_with_normalize :
+       (tapp (tapp idBBBB idBB) idB)
+  ==>* idB.
+Proof. normalize. Qed.
 (** [] *)
 
 (* ###################################################################### *)
@@ -813,8 +805,14 @@ Example typing_example_2_full :
           (tapp (tvar y) (tapp (tvar y) (tvar x))))) \in
     (TArrow TBool (TArrow (TArrow TBool TBool) TBool)).
 Proof.
-  Admitted.
-(* FILL IN HERE *)
+  (* SOLUTION: *)
+  apply T_Abs.
+  apply T_Abs.
+  apply T_App with (T11 := TBool).
+  apply T_Var. reflexivity.
+  apply T_App with (T11 := TBool).
+  apply T_Var. reflexivity.
+  apply T_Var. reflexivity.  Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars (typing_example_3) *)
@@ -834,20 +832,15 @@ Example typing_example_3 :
                (tapp (tvar y) (tapp (tvar x) (tvar z)))))) \in
       T.
 Proof with auto.
-  exists (TArrow 
-            (TArrow TBool TBool)
-            (TArrow
-               (TArrow TBool TBool)
-               (TArrow 
-                  TBool
-                  TBool))).
+  (* SOLUTION: *)
+  exists (TArrow (TArrow TBool TBool)
+            (TArrow (TArrow TBool TBool)
+               (TArrow TBool TBool))).
   apply T_Abs.
   apply T_Abs.
   apply T_Abs.
-  eapply T_App. apply T_Var. reflexivity.
-  eapply T_App. apply T_Var. reflexivity.
-  apply T_Var. reflexivity.
-Qed.
+  apply T_App with (T11 := TBool)...
+  apply T_App with (T11 := TBool)...  Qed.
 (** [] *)
 
 (** We can also show that terms are _not_ typable.  For example, let's
@@ -889,7 +882,20 @@ Example typing_nonexample_3 :
              (tapp (tvar x) (tvar x))) \in
           T).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros Hc. inversion Hc.
+  inversion H. subst.  clear H. 
+  inversion H0. subst. clear H0.
+  inversion H5. subst. clear H5.
+  inversion H2. subst. clear H2.
+  inversion H4. subst. clear H4.
+  rewrite H2 in H1. clear H2.
+  inversion H1. clear H1.
+  (* At this point, we have an assumption that [S] is equal
+     to [S->T2].  But there can't be any such (finite) [S]. *)
+  induction T11. 
+    Case "TBase". inversion H0.
+    Case "TArrow". inversion H0. apply IHT11_1. rewrite <- H2. assumption.  Qed.
 (** [] *)
 
 
@@ -897,5 +903,5 @@ Proof.
 
 End STLC.
 
-(* $Date: 2013-04-10 17:37:24 -0400 (Wed, 10 Apr 2013) $ *)
+(* $Date$ *)
 

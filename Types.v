@@ -190,18 +190,14 @@ Hint Unfold stuck.
 Example some_term_is_stuck :
   exists t, stuck t.
 Proof.
-  unfold stuck.
-  exists (tsucc ttrue).
-  split.
-  Case "left".
-    unfold normal_form. 
-    intros contra. inversion contra.
-    inversion H. inversion H1.
-  Case "right".
-    intros contra.
-    inversion contra.
-    inversion H. inversion H. inversion H1.
-Qed. (* TODO: Clean up. *)
+  (* SOLUTION: *)
+  exists (tsucc tfalse).
+  unfold stuck. split.
+    Case "normal form".
+      unfold normal_form. intros contra. inversion contra as [t' Hstp].
+      solve by inversion 2.
+    Case "not a value".
+      intros H. solve by inversion 3.  Qed.
 (** [] *)
 
 (** However, although values and normal forms are not the same in this
@@ -221,7 +217,23 @@ Qed. (* TODO: Clean up. *)
 Lemma value_is_nf : forall t,
   value t -> step_normal_form t.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros t H.
+  (* Here is the easier way: *)
+  unfold normal_form.
+  inversion H; clear H.
+  Case "boolean value". inversion H0.
+    SCase "ttrue". intros Contra. inversion Contra as [t' P]. 
+      inversion P.
+    SCase "tfalse". intros Contra. inversion Contra as [t' P]. 
+      inversion P.
+  Case "numeric value".
+    induction H0.
+    SCase "nv_zero". intros Contra. inversion Contra as [t' P]. 
+      inversion P.
+    SCase "nv_succ". intros Contra. inversion Contra as [t' P]. 
+      inversion P. subst. apply IHnvalue. 
+      exists t1'. auto.  Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (step_deterministic) *)
@@ -231,7 +243,40 @@ Proof.
 Theorem step_deterministic:
   deterministic step.
 Proof with eauto.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  unfold deterministic. intros x y1 y2 Hy1 Hy2.
+  generalize dependent y2.
+  step_cases (induction Hy1) Case; 
+        intros y2 Hy2; inversion Hy2; subst; auto; 
+        try (solve by inversion).
+    Case "ST_If".
+      SCase "Hy2 by ST_If". f_equal... 
+    Case "ST_Succ". 
+      SCase "Hy2 by ST_Succ". f_equal... 
+    Case "ST_PredSucc".
+      SCase "Hy2 by ST_Pred".
+        inversion H1; subst. 
+        apply ex_falso_quodlibet.
+        apply value_is_nf with t1...
+    Case "ST_Pred".
+      SCase "Hy2 by ST_PredSucc". 
+        inversion Hy1; subst.
+        apply ex_falso_quodlibet. 
+        apply value_is_nf with y2... 
+      SCase "Hy2 by ST_Pred". 
+        f_equal... 
+    Case "ST_IszeroSucc".
+      SCase "Hy2 by ST_Iszero". 
+        inversion H1; subst.
+        apply ex_falso_quodlibet.
+        apply value_is_nf with t1...
+    Case "ST_Iszero".
+      SCase "Hy2 by ST_IszeroSucc". 
+        inversion Hy1; subst.
+        apply ex_falso_quodlibet. 
+        apply value_is_nf with t0...
+      SCase "Hy2 by ST_Iszero".
+        f_equal... Qed. 
 (** [] *)
 
 
@@ -347,8 +392,8 @@ Example succ_hastype_nat__hastype_nat : forall t,
   |- tsucc t \in TNat ->
   |- t \in TNat.  
 Proof.
-  intros t H. inversion H. apply H1.
-Qed.
+  (* SOLUTION: *)
+  intros t H. inversion H. subst. assumption.  Qed.
 (** [] *)
 
 (* ###################################################################### *)
@@ -384,33 +429,40 @@ Proof with auto.
     SCase "t1 can take a step".
       inversion H as [t1' H1].
       exists (tif t1' t2 t3)...
-  Case "T_Succ".
+  (* SOLUTION: *)
+  Case "T_Succ". 
     inversion IHHT; clear IHHT.
-    SCase "value t1". left. inversion H; clear H.
-      SSCase "bvalue t1". solve by inversion 2.
-      SSCase "nvalue t1". inversion H0...
-    SCase "step t1". 
-      right. inversion H as [t1' H1].
+    SCase "t1 is a value". inversion H...
+      SSCase "t1 is a bvalue". solve by inversion 2.
+    SCase "t1 can take a step".
+      right. inversion H as [t1' H1]. 
       exists (tsucc t1')...
-  Case "T_Pred".
-    inversion IHHT; clear IHHT; right.
-    SCase "value t1". inversion H; clear H.
-      SSCase "bvalue t1". solve by inversion 2.
-      SSCase "nvalue t1". inversion H0.
-        SSSCase "t1 = 0". exists (tzero)...
-        SSSCase "t1 = t + 1". exists t...
-    SCase "step t1".
-      inversion H as [t1' H1].
+  Case "T_Pred". 
+    inversion IHHT; clear IHHT.
+    SCase "t1 is a value". inversion H; clear H.
+      SSCase "t1 is a bvalue". solve by inversion 2.
+      SSCase "t1 is an nvalue". right. 
+        inversion H0; subst.
+        SSSCase "t1 is zero".
+          exists (tzero)... 
+        SSSCase "t1 is nonzero".
+          exists t...
+    SCase "t1 can take a step".
+      right. inversion H as [t1' H1].
       exists (tpred t1')...
-  Case "T_Iszero".
-    inversion IHHT; clear IHHT; right.
-    SCase "value t1". inversion H; clear H.
-      SSCase "bvalue". solve by inversion 2.
-      SSCase "nvalue". inversion H0.
-        SSSCase "0". exists ttrue...
-        SSSCase "n+1". exists tfalse...
-    SCase "steps". inversion H as [t1' H1]. exists (tiszero t1')...
-Qed.
+  Case "T_Iszero". 
+    inversion IHHT; clear IHHT.
+    SCase "t1 is a value". inversion H; clear H.
+      SSCase "t1 is a bvalue". solve by inversion 2.
+      SSCase "t1 is an nvalue". right.
+        inversion H0; subst.
+        SSSCase "t1 is zero".
+          exists ttrue...
+        SSSCase "t1 is nonzero".
+          exists tfalse...
+    SCase "t1 can take a step". 
+      right. inversion H as [t1' H1]. 
+      exists (tiszero t1')...  Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (finish_progress_informal) *)
@@ -439,8 +491,60 @@ Qed.
             - If [t1] itself can take a step, then, by [ST_If], so can
               [t].
 
-    (* FILL IN HERE *)
-[]
+    (* SOLUTION: *)
+
+      - If the last rule in the derivation is [T_True], then [t =
+        true], which is a boolean value and hence a value.  The cases
+        for [T_False] and [T_Zero] are similar.
+
+      - If the last rule in the derivation is [T_Succ], then [t = succ
+        t1], with [|- t1 \in Nat].  By the IH, either [t1] is a value or
+        else [t1] can step to some [t1'].
+
+            - If [t1] is a value, then it is either an [nvalue] or a
+              [bvalue].  But it cannot be an [bvalue], because we know
+              [|- t1 \in Nat] and there are no rules assigning type
+              [Bool] to any term that could be a [bvalue].  So [t1] is
+              a [nvalue], and hence [t] is also an [nvalue] (and hence
+              a value) by [nv_succ].
+
+            - If [t1] can take a step, then by [ST_Succ], so can [t].
+
+      - If the last rule in the derivation is [T_Pred], then [t =
+        pred t1], with [|- t1 \in Nat].   By the IH, either [t1] is a
+        value or else [t1] can step to some [t1'].
+
+            - If [t1] is a value, then (by the same argument as in the
+              previous case) it must be an [nvalue].  By inversion on
+              the [nvalue] judgement, there are two cases:
+ 
+                - If [t1 = zero], then [t] can take a step by
+                  [ST_PredZero].
+
+                - Otherwise, [t1 = succ t1'], with [t1'] an [nvalue].
+                  Hence [t] can again take a step, this time by
+                  [ST_PredSucc].
+
+            - Finally, if [t1] can take a step, then by [ST_Pred], so
+              can [t].
+
+      - If the last rule in the derivation is [T_IsZero], then [t =
+        iszero t1], with [|- t1 \in Nat].  By the IH, either [t1] is a
+        value or else [t1] steps to some [t1'].
+
+            - If [t1] is a value, it must be an [nvalue], and there
+              are two cases to consider:
+
+                - If [t1 = zero], then [t] can take a step by
+                  [ST_IsZeroZero].
+
+                - Otherwise, [t1 = succ t1'] where [t1'] is an
+                  [nvalue].  Hence [t] can take a step by
+                  [ST_IsZeroSucc].
+
+            - If [t1] can take a step, then so can [t], by [ST_IsZero].
+      
+    []
 *)
 
 (** This is more interesting than the strong progress theorem that we
@@ -452,13 +556,17 @@ Qed.
 (** Quick review.  Answer _true_ or _false_.  In this language...
       - Every well-typed normal form is a value.
 
+            TRUE: This is the content of the progress theorem.
       - Every value is a normal form.
 
+            TRUE: This can proved by induction on values.
       - The single-step evaluation relation is
         a partial function (i.e., it is deterministic).
 
+            TRUE: This is the determinism theorem.
       - The single-step evaluation relation is a _total_ function.
 
+            FALSE: normal forms do not evaluate to anything + can get stuck.
 *)
 (** [] *)
 
@@ -498,13 +606,11 @@ Proof with auto.
       SCase "ST_IfFalse". assumption.
       SCase "ST_If". apply T_If; try assumption.
         apply IHHT1; assumption.
+    (* SOLUTION: *)
     Case "T_Succ". inversion HE; subst...
-    Case "T_Pred". inversion HE; subst.
-      SCase "ST_PredZero". assumption.
-      SCase "ST_PredSucc". inversion HT; subst. assumption.
-      SCase "ST_Pred". auto.
-    Case "T_Iszero". inversion HE; subst; auto.
-Qed.
+    Case "T_Pred". inversion HE; subst...
+      SCase "ST_PredSucc". inversion HT...
+    Case "T_Iszero". inversion HE; subst...  Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (finish_preservation_informal) *)
@@ -534,8 +640,53 @@ Qed.
              by the IH, [|- t1' \in Bool].  The [T_If] rule then gives us
              [|- if t1' then t2 else t3 \in T], as required.
 
-    (* FILL IN HERE *)
-[]
+    (* SOLUTION: *)
+
+      - If the last rule in the derivation were [T_True], then [t =
+        true].  However, [true] does not step to anything, so this
+        case cannot actually occur.
+
+      - Similarly, neither [T_False] nor [T_Zero] could not be the
+        final rule in the derivation.
+
+      - If the last rule in the derivation is [T_Succ], then [t = succ
+        t1] with [|- t1 \in Nat] and [T = Nat]. The only rule which
+        could have been used to show that [t] steps is [ST_Succ], in
+        which case [t1] steps to some [t1'].  So, by the IH, [|- t1' \in
+        Nat], and hence [t' = succ t1'] also has type [Nat] by
+        [T_Succ].
+
+      - If the last rule in the derivation is [T_Pred], then [t = pred
+        t1] with [|- t1 \in Nat].  There are only three rules which could
+        have been the last rule in the derivation of [pred t1 ==> t'].
+
+          - If the last rule was [ST_PredZero], then [t' = zero] which
+            has type [Nat].
+
+          - If the last rule was [ST_PredSucc], then [t1 = succ t'];
+            by inversion on the fact that [|- t1 \in Nat] it follows
+            that [|- t' \in Nat] as well.
+
+          - If the last rule was [ST_Pred], then [t1] steps to some
+            [t1']; by the IH [|- t1' \in Nat], and so [pred t1'] has
+            type [Nat] as well by [T_Pred].
+  
+      - If the last rule in the derivation is [T_IsZero], then [t =
+        iszero t1] with [|- t1 \in Nat] and [T = Bool].  There are only
+        three rules which could have been the last rule in the
+        derivation of [iszero t1 ==> t'].
+ 
+          - If the last rule was [ST_IsZeroZero], then [t' = true]
+            which has type [Bool].
+
+          - If the last rule was [ST_IsZeroSucc], then [t' = false]
+            which has type [Bool].
+
+          - If the last rule was [ST_IsZero], then [t1] steps to some
+            [t1'].  By the IH, [|- t1' \in Nat] as well, and hence [t' =
+            iszero t1'] has type [Bool] by [T_IsZero].
+
+    []
 *)
 
 (** **** Exercise: 3 stars (preservation_alternate_proof) *)
@@ -551,17 +702,17 @@ Theorem preservation' : forall t t' T,
   t ==> t' ->
   |- t' \in T.
 Proof with eauto.
+  (* SOLUTION: *)
   intros t t' T HT HE.
   generalize dependent T.
   step_cases (induction HE) Case;
-    intros T HT;
-    (* All cases are either impossible *)
-    try(solve by inversion);
-    (* Or follow from the hypotheses. *)
-    try(inversion HT; subst; auto).
-  (* Except PredSucc. *)
-  Case "ST_PredSucc". inversion H1...
-Qed.
+         (* in each case, invert the given typing derivation *)
+         intros T HT; inversion HT; subst; 
+         (* deal with several easy or contradictory cases 
+            all at once *)
+         try solve [assumption; solve by inversion]...
+    Case "ST_PredSucc". 
+      inversion HT. subst. inversion H2. subst...  Qed.
 (** [] *)
 
 (* ###################################################################### *)
@@ -592,12 +743,15 @@ Proof.
     also holds.  That is, is it always the case that, if [t ==> t']
     and [|- t' \in T], then [|- t \in T]?  If so, prove it.  If
     not, give a counter-example.  (You do not need to prove your
-    counter-example in Coq, but feel free to do so if you like.) *)
+    counter-example in Coq, but feel free to do so if you like.)
 
-(* Counterexample: if true then 0 else false 
- * The statement steps to 0, which is well-typed, but this statement is not.
- *)
-(* [] *)
+    (* SOLUTION: *) 
+       Subject expansion does not hold in this language (or most
+       interesting languages).  For example, [tif tfalse
+       ttrue tzero] is ill typed, but it evaluates to the
+       well-typed term [tzero].  
+    []
+*)
 
 
 
@@ -611,11 +765,15 @@ Proof.
    this rule?  For each one, write either "remains true" or
    else "becomes false." If a property becomes false, give a
    counterexample.
-      - Determinism of [step] remains true
-      - Progress becomes false:
-          [tsucc ttrue] is not a value, since [ttrue] isn't a nvalue,
-          but [tsucc ttrue] also doesn't step to anything.
-      - Preservation remains true
+      - Determinism of [step]
+
+            Remains true
+      - Progress
+
+            Becomes false:  [tsucc ttrue] is well typed, but stuck.
+      - Preservation
+
+            Remains true            
 []
 *)
 
@@ -626,10 +784,9 @@ Proof.
    Which of the above properties become false in the presence of
    this rule?  For each one that does, give a counter-example.
 
-   - Determinism becomes false: [if ttrue 0 1] can now step to 0 *or* 1 (since
-     we still have [ST_IfTrue].
-   - Progress remains true.
-   - Preservation remains true.
+       - Determinism becomes false: [tif ttrue
+         tzero (tsucc tzero)] can now evaluate in one step
+         to either [tzero] or [tsucc tzero].
 []
 *)
 
@@ -641,6 +798,11 @@ Proof.
    Which of the above properties become false in the presence of
    this rule?  For each one that does, give a counter-example.
 
+       - Determinism again becomes false: [tif
+         tfalse (tpred tzero) (tsucc tzero)] can now
+         evaluate in one step to either [tsucc tzero] or
+         [tif tfalse tzero (tsucc tzero)].  (There are
+         several other correct counter-examples.)
 []
 *)
 
@@ -651,6 +813,7 @@ Proof.
    Which of the above properties become false in the presence of
    this rule?  For each one that does, give a counter-example.
 
+   All remain true
 []
 *)
 
@@ -663,6 +826,9 @@ Proof.
    Which of the above properties become false in the presence of
    this rule?  For each one that does, give a counter-example.
 
+       - Progress becomes false: [tif tzero ttrue ttrue]
+         has type [TBool], is a normal form, and is not a
+         value.
 []
 *)
 
@@ -675,6 +841,9 @@ Proof.
    Which of the above properties become false in the presence of
    this rule?  For each one that does, give a counter-example.
 
+       - Preservation becomes false: [tpred tzero] has type
+         [TBool] and evaluates in one step to [tzero], which
+         does not have type [TBool].
 []
 *)
 
@@ -693,8 +862,10 @@ Proof.
     achieve this simply by removing the rule from the definition of
     [step]?  Would doing so create any problems elsewhere? 
 
-(* No - this would make progress invalid, because [tpred tzero] would be well
-   typed but would neither be a value or would step to anything. *)
+(* SOLUTION: *) 
+    Yes, but doing this would break the progress property.
+    A better way would be to raise an exception in this case, but this
+    requires that we add exceptions to the language we're formalizing!
 [] *)
 
 (** **** Exercise: 4 stars, advanced (prog_pres_bigstep) *)
@@ -702,8 +873,26 @@ Proof.
     What are the appropriate analogs of the progress and preservation
     properties?
 
-(* FILL IN HERE *)
+(* SOLUTION: *) The type preservation property for the big-step
+    semantics is similar to the one we gave for the small-step
+    semantics: if a well-typed term evaluates to some final value,
+    then this value has the same type as the original term.  The proof
+    is similar to the one we gave.
+
+    The situation with the progress property is more interesting.  A
+    direct analog (if a term is well typed then it evaluates to some
+    other term) makes a much stronger claim than the progress theorem
+    we have given: it says that every well-typed term can be evaluated
+    to some final value---that is, that evaluation always terminates
+    on well-typed terms.  For arithmetic expressions, this happens to
+    be the case, but for more interesting languages (languages
+    involving general recursion, for example) it will often not be
+    true.  For such languages, we simply have no progress property in
+    the big-step style: in effect, there is no way to tell the
+    difference between reaching an error state and failing to
+    terminate.  This is one reason that language theorists generally
+    prefer the small-step style.
 []
 *)
 
-(* $Date: 2013-04-10 17:40:22 -0400 (Wed, 10 Apr 2013) $ *)
+(* $Date$ *)
