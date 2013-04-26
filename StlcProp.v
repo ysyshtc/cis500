@@ -534,7 +534,10 @@ Qed.
     then [empty |- t \in T]?  If so, prove it.  If not, give a
     counter-example not involving conditionals.
 
-(* FILL IN HERE *)
+No. For example, [(\f:bool->bool. f) true] steps to [true], which is well
+typed, but [(\f:bool->bool. f) true] itself is not well-typed since [true]
+is not a [bool->bool], as required by the abstraction.
+\x.
 []
 *)
 
@@ -568,8 +571,9 @@ Proof.
     unique: a given term (in a given context) has at most one
     type. *)
 (** Formalize this statement and prove it. *)
+Theorem types_unique : forall 
 
-(* FILL IN HERE *)
+
 (** [] *)
 
 (* ###################################################################### *)
