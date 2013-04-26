@@ -571,9 +571,22 @@ Proof.
     unique: a given term (in a given context) has at most one
     type. *)
 (** Formalize this statement and prove it. *)
-Theorem types_unique : forall 
-
-
+Theorem types_unique : forall t T1 T2 Gamma,
+  Gamma |- t \in T1 ->
+  Gamma |- t \in T2 ->
+  T1 = T2.
+Proof with auto.
+  intros t T1 T2 Gamma H1 H2.
+ generalize dependent T2.
+  has_type_cases (induction H1) Case; intros; inversion H2; subst; auto.
+  Case "T_Var".
+    rewrite H3 in H. inversion H...
+  Case "T_Abs". 
+    apply IHhas_type in H6. rewrite H6...
+  Case "T_App".
+    apply IHhas_type2 in H5. apply IHhas_type1 in H3.
+    rewrite H5 in H3. inversion H3...
+Qed.
 (** [] *)
 
 (* ###################################################################### *)
