@@ -113,7 +113,35 @@ Theorem progress' : forall t T,
 Proof.
   intros t.
   t_cases (induction t) Case; intros T Ht; auto.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  Case "tvar".
+    inversion Ht. subst. inversion H1.
+  Case "tapp".
+    right.
+    inversion Ht; clear Ht; subst.
+    assert (value t1 \/ (exists t' : tm, t1 ==> t')) by eauto. clear IHt1.
+    assert (value t2 \/ (exists t' : tm, t2 ==> t')) by eauto. clear IHt2.
+    inversion H.
+      SCase "t1 is a value".
+        inversion H0. 
+        SSCase "... and t2 is a value". inversion H1. 
+          eauto. 
+          subst. solve by inversion.
+          subst. solve by inversion.
+        SSCase "... and t2 can step". inversion H3. eauto.
+      SCase "t1 can step".
+        inversion H1. eauto.
+  Case "tif".
+    right. 
+    inversion Ht; clear Ht; subst. 
+    assert (value t1 \/ (exists t' : tm, t1 ==> t')) by eauto. clear IHt1.
+    inversion H; clear H.
+      SCase "t1 is a value".
+        inversion H0; clear H0; subst. 
+        solve by inversion. eauto. eauto.
+      SCase "t1 can step".
+        inversion H0. eauto.
+Qed.
 (** [] *)
 
 (* ###################################################################### *)
@@ -263,7 +291,10 @@ Corollary typable_empty__closed : forall t T,
     empty |- t \in T  ->
     closed t.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  intros. unfold closed. intros x H1.
+  destruct (free_in_context _ _ _ _ H1 H) as [T' Hc].
+  inversion Hc.  Qed.
 (** [] *)
 
 (** Sometimes, when we have a proof [Gamma |- t : T], we will need to
@@ -359,25 +390,25 @@ Lemma substitution_preserves_typing : forall Gamma x U t v T,
      Gamma |- [x:=v]t \in T.
 
 (** One technical subtlety in the statement of the lemma is that we
-    assign [t'] the type [U] in the _empty_ context -- in other words,
-    we assume [t'] is closed.  This assumption considerably simplifies
-    the [T_Abs] case of the proof (compared to assuming [Gamma |- t' \in
+    assign [v] the type [U] in the _empty_ context -- in other words,
+    we assume [v] is closed.  This assumption considerably simplifies
+    the [T_Abs] case of the proof (compared to assuming [Gamma |- v \in
     U], which would be the other reasonable assumption at this point)
-    because the context invariance lemma then tells us that [t'] has
+    because the context invariance lemma then tells us that [v] has
     type [U] in any context at all -- we don't have to worry about
-    free variables in [t'] clashing with the variable being introduced
+    free variables in [v] clashing with the variable being introduced
     into the context by [T_Abs].
 
     _Proof_: We prove, by induction on [t], that, for all [T] and
-    [Gamma], if [Gamma,x:U |- t \in T] and [|- t' \in U], then [Gamma |-
-    [x:=t']t \in T].
+    [Gamma], if [Gamma,x:U |- t \in T] and [|- v \in U], then [Gamma |-
+    [x:=v]t \in T].
  
       - If [t] is a variable, there are two cases to consider, depending
         on whether [t] is [x] or some other variable.
 
           - If [t = x], then from the fact that [Gamma, x:U |- x \in T] we
-            conclude that [U = T].  We must show that [[x:=t']x = t'] has
-            type [T] under [Gamma], given the assumption that [t'] has
+            conclude that [U = T].  We must show that [[x:=v]x = v] has
+            type [T] under [Gamma], given the assumption that [v] has
             type [U = T] under the empty context.  This follows from
             context invariance: if a closed term has type [T] in the
             empty context, it has that type in any context.
@@ -388,13 +419,13 @@ Lemma substitution_preserves_typing : forall Gamma x U t v T,
 
       - If [t] is an abstraction [\y:T11. t12], then the IH tells us,
         for all [Gamma'] and [T'], that if [Gamma',x:U |- t12 \in T']
-        and [|- t' \in U], then [Gamma' |- [x:=t']t12 \in T'].
+        and [|- v \in U], then [Gamma' |- [x:=v]t12 \in T'].
 
         The substitution in the conclusion behaves differently,
         depending on whether [x] and [y] are the same variable name.
 
         First, suppose [x = y].  Then, by the definition of
-        substitution, [[x:=t']t = t], so we just need to show [Gamma |-
+        substitution, [[x:=v]t = t], so we just need to show [Gamma |-
         t \in T].  But we know [Gamma,x:U |- t : T], and since the
         variable [y] does not appear free in [\y:T11. t12], the
         context invariance lemma yields [Gamma |- t \in T].
@@ -402,10 +433,10 @@ Lemma substitution_preserves_typing : forall Gamma x U t v T,
         Second, suppose [x <> y].  We know [Gamma,x:U,y:T11 |- t12 \in
         T12] by inversion of the typing relation, and [Gamma,y:T11,x:U
         |- t12 \in T12] follows from this by the context invariance
-        lemma, so the IH applies, giving us [Gamma,y:T11 |- [x:=t']t12 \in
-        T12].  By [T_Abs], [Gamma |- \y:T11. [x:=t']t12 \in T11->T12], and
+        lemma, so the IH applies, giving us [Gamma,y:T11 |- [x:=v]t12 \in
+        T12].  By [T_Abs], [Gamma |- \y:T11. [x:=v]t12 \in T11->T12], and
         by the definition of substitution (noting that [x <> y]),
-        [Gamma |- \y:T11. [x:=t']t12 \in T11->T12] as required. 
+        [Gamma |- \y:T11. [x:=v]t12 \in T11->T12] as required.
 
       - If [t] is an application [t1 t2], the result follows
         straightforwardly from the definition of substitution and the
@@ -425,7 +456,7 @@ Lemma substitution_preserves_typing : forall Gamma x U t v T,
     hand, _is_ completely generic. *)
 
 Proof with eauto.
-  intros Gamma x U t t' T Ht Ht'.
+  intros Gamma x U t v T Ht Ht'.
   generalize dependent Gamma. generalize dependent T. 
   t_cases (induction t) Case; intros T Gamma H;
     (* in each case, we'll want to get at the derivation of H *)
@@ -534,10 +565,10 @@ Qed.
     then [empty |- t \in T]?  If so, prove it.  If not, give a
     counter-example not involving conditionals.
 
-No. For example, [(\f:bool->bool. f) true] steps to [true], which is well
-typed, but [(\f:bool->bool. f) true] itself is not well-typed since [true]
-is not a [bool->bool], as required by the abstraction.
-\x.
+(* SOLUTION: *) 
+    Subject expansion does not hold in STLC either.  For example,
+    [((\a:Bool->Bool. \y:Bool. y) true)] is ill typed, but it evaluates
+    to the well-typed term [\y:Bool. y].
 []
 *)
 
@@ -561,7 +592,14 @@ Proof.
   intros t t' T Hhas_type Hmulti. unfold stuck.
   intros [Hnf Hnot_val]. unfold normal_form in Hnf.
   induction Hmulti.
-  (* FILL IN HERE *) Admitted.
+  (* SOLUTION: *)
+  Case "multi_refl".
+    apply progress in Hhas_type.
+    inversion Hhas_type; auto.
+  Case "multi_step".
+    eapply preservation in Hhas_type.
+      apply IHHmulti; try eassumption.
+      assumption. Qed.
 
 (* ###################################################################### *)
 (** * Uniqueness of Types *)
@@ -571,21 +609,22 @@ Proof.
     unique: a given term (in a given context) has at most one
     type. *)
 (** Formalize this statement and prove it. *)
-Theorem types_unique : forall t T1 T2 Gamma,
-  Gamma |- t \in T1 ->
-  Gamma |- t \in T2 ->
-  T1 = T2.
-Proof with auto.
-  intros t T1 T2 Gamma H1 H2.
- generalize dependent T2.
-  has_type_cases (induction H1) Case; intros; inversion H2; subst; auto.
+
+(* SOLUTION: *)
+Theorem unique_types : forall Gamma e T T',
+  Gamma |- e \in T ->
+  Gamma |- e \in T' ->
+  T = T'.
+Proof.
+  intros Gamma e T T' Htyp. generalize dependent T'.
+  has_type_cases (induction Htyp) Case; intros T' Htyp';
+    inversion Htyp'; subst; auto.
   Case "T_Var".
-    rewrite H3 in H. inversion H...
-  Case "T_Abs". 
-    apply IHhas_type in H6. rewrite H6...
+    rewrite H in H2. inversion H2. reflexivity.
+  Case "T_Abs".
+    apply IHHtyp in H4. subst. reflexivity.
   Case "T_App".
-    apply IHhas_type2 in H5. apply IHhas_type1 in H3.
-    rewrite H5 in H3. inversion H3...
+    apply IHHtyp1 in H2. inversion H2. reflexivity.
 Qed.
 (** [] *)
 
@@ -611,12 +650,15 @@ and the following typing rule:
     false, give a counterexample.
 
       - Determinism of [step]
-          Becomes false. For example, [(\x:bool. x) true] could either step to
-          [true] or to [zap].
+
+        - Becomes false. For instance [(if true then false else true) ==> false]
+          and [(if true then false else true) ==> zap].
       - Progress
-          Remains true.
+
+        - Remains true. [zap] can have any type.
       - Preservation
-          Remains true.
+
+        - Remains true. Every term (including [zap]) can take a step to [zap].
 []
 *)
 
@@ -633,13 +675,20 @@ and the following typing rule:
     false, give a counterexample.
 
       - Determinism of [step]
-          Becomes false. E.g., [(\x:bool. x) true] steps to either [true] or
-          [foo].
+
+        - Remains true. [(\x:A. x)] didn't reduce before and now
+          reduces in just one way (this breaks the "values are normal
+          forms" property, but it doesn't break determinism.
       - Progress
-          Remains true.
+
+        - Remains true. We are only adding to the step relation, and
+          this can never damage progress.
       - Preservation
-          Becomes false. E.g., [\x:bool. x] has type [bool -> bool], and steps
-          to [foo], but [foo] doesn't have a type.
+
+        - Becomes false. For example,
+          [|- \x:Bool.x \in Bool->Bool] and [(\x:Bool.x) ==> foo] by (ST_Foo1),
+          but, since we have no typing rules for foo, we cannot prove that
+          [|- foo \in Bool->Bool].
 []
 *)
 
@@ -651,12 +700,17 @@ and the following typing rule:
     false, give a counterexample.
 
       - Determinism of [step]
-          Remains true.
+
+        - Remains true. Removing reduction rules can only make [step]
+          more deterministic.
       - Progress
-          Becomes false: [((\x.\y.y x) t) (\z.z)] steps to [(\y.y t) (\z.z)]
-          but that term is stuck if we remove [ST_App1].
+
+        - Becomes false. For example,
+          [((\x:Bool->Bool. \y:Bool->Bool. x) (\z:Bool.z)) (\z:Bool.z)] 
+          is well typed, but stuck.
       - Preservation
-          Remains true.          
+
+        - Remains true. Removing reduction rules can't break preservation.
 []
 *)
 
@@ -670,11 +724,20 @@ and the following typing rule:
     false, give a counterexample.
 
       - Determinism of [step]
-          
+
+        - Becomes false, for instance:
+          [(if true then false else false) ==> false] and
+          [(if true then false else false) ==> true]
       - Progress
 
+        - Remains true. We are only adding to the step relation, and
+          this can never damage progress.
       - Preservation
 
+        - Becomes false. For example,
+          [|- if true then (\x:Bool.x) else (\x:Bool.x) \in Bool->Bool]
+          and [(if true then (\x:Bool.x) else (\x:Bool.x)) ==> true]
+          but it's not the case that [|- true \in Bool -> Bool].
 *)
 
 (** **** Exercise: 2 stars, optional (stlc_variation5) *)
@@ -690,10 +753,18 @@ and the following typing rule:
 
       - Determinism of [step]
 
+        - Remains true. We are only adding to the typing relation, and
+          this can never damage determinism of [step].
       - Progress
 
+        - Remains true. Since the new rule still requires that [t1] is
+          a function we can still apply ST_AppAbs to show progress.
       - Preservation
 
+        - Becomes false. For example,
+          [|- \x:Bool. \y:Bool. x true \in Bool]
+          and [(\x:Bool. \y:Bool. x) true ==> \y:Bool. true]
+          but it's not the case that [|- \y:Bool. true \in Bool]
 *)
 
 (** **** Exercise: 2 stars, optional (stlc_variation6) *)
@@ -709,10 +780,18 @@ and the following typing rule:
 
       - Determinism of [step]
 
+        - Remains true. We are not changing the [step] relation.
       - Progress
 
+        - Becomes false. For instance, [true true] is a term that
+          becomes typable (at type [Bool]), but which is stuck.
       - Preservation
 
+        - Remains true. There are 3 ways [t1 t2] can reduce. For
+          [ST_App1] and [ST_App2] we can still apply the induction
+          hypothesis. In order to reduce [t1 t2] using [ST_AppAbs]
+          [t1] would need to be a function, but functions don't have
+          type [Bool].
 *)
 
 (** **** Exercise: 2 stars, optional (stlc_variation7) *)
@@ -727,10 +806,15 @@ and the following typing rule:
 
       - Determinism of [step]
 
+        - Remains true. We're not changing the [step] relation.
       - Progress
 
+        - Becomes false. For instance [if (\x:Bool.false) then false
+          else false] is a term that would become typable, although it
+          is stuck.
       - Preservation
 
+        - Remains true. [\x:Bool.t] doesn't step.
 []
 *)
 
@@ -789,108 +873,100 @@ Tactic Notation "t_cases" tactic(first) ident(c) :=
       the original STLC to deal with the new syntactic forms.  Make
       sure Coq accepts the whole file. *)
 
-(** value ********************************************************************)
+(* SOLUTION: *)
+
+Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
+  match t with
+  | tvar y => 
+      if beq_id x y then s else t
+  | tabs y T t1 => 
+      tabs y T (if beq_id x y then t1 else (subst x s t1))
+  | tapp t1 t2 => 
+      tapp (subst x s t1) (subst x s t2)
+  (* nothing special... *)
+  | tnat n => 
+      tnat n
+  | tsucc t1 => 
+      tsucc (subst x s t1)
+  | tpred t1 => 
+      tpred (subst x s t1)
+  | tmult t1 t2 => 
+      tmult (subst x s t1) (subst x s t2)
+  | tif0 t1 t2 t3 => 
+      tif0 (subst x s t1) (subst x s t2) (subst x s t3)
+  end.
+
+Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
+
 Inductive value : tm -> Prop :=
   | v_abs : forall x T t,
       value (tabs x T t)
-  | v_tnat : forall n,
+  (* numbers are values *)
+  | v_nat : forall n,
       value (tnat n).
 
 Hint Constructors value.
 
-
-(** subst ********************************************************************)
-Reserved Notation "'[' x ':=' s ']' t" (at level 20).
-
-Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
-  match t with
-  | tvar x' => 
-      if beq_id x x' then s else t
-  | tabs x' T t1 => 
-      tabs x' T (if beq_id x x' then t1 else ([x:=s] t1)) 
-  | tapp t1 t2 => 
-      tapp ([x:=s] t1) ([x:=s] t2)
-  | tnat n =>
-      tnat n
-  | tsucc t => 
-      tsucc ([x:=s] t)
-  | tpred t => 
-      tpred ([x:=s] t)
-  | tmult t1 t2 =>
-      tmult ([x:=s] t1) ([x:=s] t2)
-  | tif0 t1 t2 t3 => 
-      tif0 ([x:=s] t1) ([x:=s] t2) ([x:=s] t3)
-  end
-
-where "'[' x ':=' s ']' t" := (subst x s t).
-
-
-(** step *********************************************************************)
 Reserved Notation "t1 '==>' t2" (at level 40).
 
 Inductive step : tm -> tm -> Prop :=
   | ST_AppAbs : forall x T t12 v2,
-      value v2 ->
-      (tapp (tabs x T t12) v2) ==> [x:=v2]t12
+         value v2 ->
+         (tapp (tabs x T t12) v2) ==> [x:=v2]t12
   | ST_App1 : forall t1 t1' t2,
-      t1 ==> t1' ->
-      tapp t1 t2 ==> tapp t1' t2
+         t1 ==> t1' ->
+         (tapp t1 t2) ==> (tapp t1' t2)
   | ST_App2 : forall v1 t2 t2',
-      value v1 ->
-      t2 ==> t2' -> 
-      tapp v1 t2 ==> tapp v1  t2'
-  | ST_IfZero : forall t1 t2,
-      (tif0 (tnat 0) t1 t2) ==> t1
-  | ST_IfNonzero : forall n t1 t2,
-      n <> 0 ->
-      (tif0 (tnat n) t1 t2) ==> t2
-  | ST_If0 : forall t1 t1' t2 t3,
-      t1 ==> t1' ->
-      (tif0 t1 t2 t3) ==> (tif0 t1' t2 t3)
-  | ST_SuccNat : forall n,
-      tsucc (tnat n) ==> tnat (n+1)
+         value v1 ->
+         t2 ==> t2' ->
+         (tapp v1 t2) ==> (tapp v1 t2')
   | ST_Succ : forall t t',
-      t ==> t' ->
-      tsucc t ==> tsucc t'
-  | ST_PredZero :
-      tpred (tnat 0) ==> (tnat 0)
-  | ST_PredNat : forall n,
-      n <> 0 ->
-      tpred (tnat n) ==> tnat (n-1)
+         t ==> t' ->
+         (tsucc t) ==> (tsucc t')
+  | ST_SuccNat : forall n,
+         (tsucc (tnat n)) ==> (tnat (S n))
   | ST_Pred : forall t t',
-      t ==> t' ->
-      tpred t ==> tpred t'
-  | ST_MultNat : forall n1 n2,
-      tmult (tnat n1) (tnat n2) ==> tnat (n1 * n2)
+         t ==> t' ->
+         (tpred t) ==> (tpred t')
+  | ST_PredNat : forall n,
+         (tpred (tnat n)) ==> (tnat (pred n))
+  | ST_MultNats : forall n1 n2,
+         (tmult (tnat n1) (tnat n2)) ==> (tnat (mult n1 n2))
   | ST_Mult1 : forall t1 t1' t2,
-      t1 ==> t1' ->
-      tmult t1 t2 ==> tmult t1' t2
-  | ST_Mult2 : forall t1 t2 t2',
-      value t1 ->
-      t2 ==> t2' ->
-      tmult t1 t2 ==> tmult t1 t2'
-where "t1 '==>' t2" := (step t1 t2).
+         t1 ==> t1' ->
+         (tmult t1 t2) ==> (tmult t1' t2)
+  | ST_Mult2 : forall v1 t2 t2',
+         value v1 ->
+         t2 ==> t2' ->
+         (tmult v1 t2) ==> (tmult v1 t2')
+  | ST_If0 : forall t1 t1' t2 t3,
+         t1 ==> t1' ->
+         (tif0 t1 t2 t3) ==> (tif0 t1' t2 t3)
+  | ST_If0_Zero : forall t2 t3,
+         (tif0 (tnat 0) t2 t3) ==> t2
+  | ST_If0_Nonzero : forall n t2 t3,
+         (tif0 (tnat (S n)) t2 t3) ==> t3
 
-Tactic Notation "step_cases" tactic(first) ident(c) :=
-  first;
-  [ Case_aux c "ST_AppAbs" | Case_aux c "ST_App1" 
-  | Case_aux c "ST_App2" | Case_aux c "ST_IfZero" 
-  | Case_aux c "ST_IfNonzero" | Case_aux c "ST_If0"
-  | Case_aux c "ST_SuccNat" | Case_aux c "ST_Succ"
-  | Case_aux c "ST_PredZero" | Case_aux c "ST_PredNat"
-  | Case_aux c "ST_Pred" | Case_aux c "ST_MultNat"
-  | Case_aux c "ST_Mult1" | Case_aux c "ST_Mult2"].
-Hint Constructors step.
+where "t1 '==>' t2" := (step t1 t2).
 
 Notation multistep := (multi step).
 Notation "t1 '==>*' t2" := (multistep t1 t2) (at level 40).
 
+Hint Constructors step.
 
-(** context & typing *********************************************************)
+(* ########################################### *)
+(* Evaluation example: *)
+
+(* FIX : something to replace fact *)
+
+(* ########################################### *)
+
+(* Typing *)
+
 Definition context := partial_map ty.
 
 Reserved Notation "Gamma '|-' t '\in' T" (at level 40).
-    
+
 Inductive has_type : context -> tm -> ty -> Prop :=
   | T_Var : forall Gamma x T,
       Gamma x = Some T ->
@@ -898,110 +974,41 @@ Inductive has_type : context -> tm -> ty -> Prop :=
   | T_Abs : forall Gamma x T11 T12 t12,
       extend Gamma x T11 |- t12 \in T12 -> 
       Gamma |- tabs x T11 t12 \in TArrow T11 T12
-  | T_App : forall T11 T12 Gamma t1 t2,
-      Gamma |- t1 \in TArrow T11 T12 -> 
-      Gamma |- t2 \in T11 -> 
-      Gamma |- tapp t1 t2 \in T12
+  | T_App : forall Gamma t1 T1 T2 t2,
+      Gamma |- t1 \in TArrow T1 T2 -> 
+      Gamma |- t2 \in T1 -> 
+      Gamma |- tapp t1 t2 \in T2
+  (* typing rules for arithmetic expressions *)
   | T_Nat : forall Gamma n,
       Gamma |- tnat n \in TNat
-  | T_Succ : forall Gamma t,
-      Gamma |- t \in TNat ->
-      Gamma |- tsucc t \in TNat
-  | T_Pred : forall Gamma t,
-      Gamma |- t \in TNat ->
-      Gamma |- tpred t \in TNat
+  | T_Succ : forall Gamma t1,
+      Gamma |- t1 \in TNat ->
+      Gamma |- tsucc t1 \in TNat
+  | T_Pred : forall Gamma t1,
+      Gamma |- t1 \in TNat ->
+      Gamma |- tpred t1 \in TNat
   | T_Mult : forall Gamma t1 t2,
       Gamma |- t1 \in TNat ->
       Gamma |- t2 \in TNat ->
       Gamma |- tmult t1 t2 \in TNat
-  | T_If0 : forall Gamma T t1 t2 t3,
+  | T_If0 : forall Gamma t1 t2 t3 T,
       Gamma |- t1 \in TNat ->
       Gamma |- t2 \in T ->
       Gamma |- t3 \in T ->
       Gamma |- tif0 t1 t2 t3 \in T
+
 where "Gamma '|-' t '\in' T" := (has_type Gamma t T).
 
 Tactic Notation "has_type_cases" tactic(first) ident(c) :=
   first;
-  [ Case_aux c "T_Var" | Case_aux c "T_Abs" 
-  | Case_aux c "T_App" | Case_aux c "T_Nat"
-  | Case_aux c "T_Succ" | Case_aux c "T_Pred"
+  [ Case_aux c "T_Var" | Case_aux c "T_Abs" | Case_aux c "T_App"
+  | Case_aux c "T_Nat" | Case_aux c "T_Succ" | Case_aux c "T_Pred"
   | Case_aux c "T_Mult" | Case_aux c "T_If0" ].
 
 Hint Constructors has_type.
 
-
-(** progress *****************************************************************)
-Theorem progress : forall t T, 
-     empty |- t \in T ->
-     value t \/ exists t', t ==> t'.
-Proof with eauto.
-  intros t T Ht.
-  remember (@empty ty) as Gamma.
-  has_type_cases (induction Ht) Case; subst Gamma...
-  Case "T_Var".
-    (* contradictory: variables cannot be typed in an 
-       empty context *)
-    inversion H. 
-
-  Case "T_App". 
-    (* [t] = [t1 t2].  Proceed by cases on whether [t1] is a 
-       value or steps... *)
-    right. destruct IHHt1...
-    SCase "t1 is a value".
-      destruct IHHt2...
-      SSCase "t2 is also a value".
-        (* Since [t1] is a value and has an arrow type, it
-           must be an abs. Sometimes this is proved separately 
-           and called a "canonical forms" lemma. *) 
-        inversion H; subst. exists ([x:=t2]t)...
-        solve by inversion. (*inversion H0; subst. exists (tapp t1 x).*)
-(*        apply ST_App2...*)
-      SSCase "t2 steps".
-        inversion H0 as [t2' Hstp]. exists (tapp t1 t2')...
-
-    SCase "t1 steps".
-      inversion H as [t1' Hstp]. exists (tapp t1' t2)...
-
-  Case "T_Succ".
-    right. destruct IHHt... 
-    SCase "t value". inversion H; subst. solve by inversion... eauto.
-    SCase "t steps". inversion H. exists (tsucc x)...
-
-  Case "T_Pred".
-    right. destruct IHHt...
-    SCase "t value". inversion H; subst. solve by inversion. destruct n.
-      SSCase "n = 0". eauto.
-      SSCase "n = n+1". eauto.
-    SCase "t steps". inversion H. exists (tpred x)...
-
-  Case "T_Mult".
-    right. destruct IHHt1...
-    SCase "t1 value".
-      destruct IHHt2...
-      SSCase "t2 value".
-        inversion H; subst.
-        solve by inversion.
-        inversion H0; subst.
-          solve by inversion.
-          exists (tnat (n*n0))...
-      SSCase "t2 steps".
-        inversion H0 as [t2' Hstp]. exists (tmult t1 t2')...
-    SCase "t1 steps".
-      inversion H as [t1' Hstp]. exists (tmult t1' t2)...
-
-  Case "T_If0".
-    right. destruct IHHt1...
-    SCase "t1 value".
-      inversion H; subst. solve by inversion. destruct n.
-      SSCase "n = 0"...
-      SSCase "n = n+1"...
-    SCase "t1 steps".
-      inversion H as [t1' Hstp]. exists (tif0 t1' t2 t3)...
-Qed.
-
-
-(** appears_free_in **********************************************************)
+(* ########################################### *)
+(* Free variables *)
 
 Inductive appears_free_in : id -> tm -> Prop :=
   | afi_var : forall x,
@@ -1011,149 +1018,198 @@ Inductive appears_free_in : id -> tm -> Prop :=
   | afi_app2 : forall x t1 t2,
       appears_free_in x t2 -> appears_free_in x (tapp t1 t2)
   | afi_abs : forall x y T11 t12,
-      y <> x  ->
-      appears_free_in x t12 ->
-      appears_free_in x (tabs y T11 t12)
-  | afi_succ : forall x t,
-      appears_free_in x t ->
-      appears_free_in x (tsucc t)
-  | afi_pred : forall x t,
-      appears_free_in x t ->
-      appears_free_in x (tpred t)
+        y <> x  ->
+        appears_free_in x t12 ->
+        appears_free_in x (tabs y T11 t12)
+  (* free variables for arithmetic expressions *)
+  | afi_succ : forall x t1,
+        appears_free_in x t1 ->
+        appears_free_in x (tsucc t1)
+  | afi_pred : forall x t1,
+        appears_free_in x t1 ->
+        appears_free_in x (tpred t1)
   | afi_mult1 : forall x t1 t2,
-      appears_free_in x t1 ->
-      appears_free_in x (tmult t1 t2)
+        appears_free_in x t1 ->
+        appears_free_in x (tmult t1 t2)
   | afi_mult2 : forall x t1 t2,
-      appears_free_in x t2 ->
-      appears_free_in x (tmult t1 t2)
+        appears_free_in x t2 ->
+        appears_free_in x (tmult t1 t2)
   | afi_if01 : forall x t1 t2 t3,
-      appears_free_in x t1 ->
-      appears_free_in x (tif0 t1 t2 t3)
+        appears_free_in x t1 ->
+        appears_free_in x (tif0 t1 t2 t3)
   | afi_if02 : forall x t1 t2 t3,
-      appears_free_in x t2 ->
-      appears_free_in x (tif0 t1 t2 t3)
+        appears_free_in x t2 ->
+        appears_free_in x (tif0 t1 t2 t3)
   | afi_if03 : forall x t1 t2 t3,
-      appears_free_in x t3 ->
-      appears_free_in x (tif0 t1 t2 t3).
+        appears_free_in x t3 ->
+        appears_free_in x (tif0 t1 t2 t3).
 
 Tactic Notation "afi_cases" tactic(first) ident(c) :=
   first;
   [ Case_aux c "afi_var"
-  | Case_aux c "afi_app1" | Case_aux c "afi_app2" 
-  | Case_aux c "afi_abs" | Case_aux c "afi_succ" 
-  | Case_aux c "afi_pred" | Case_aux c "afi_mult1" 
-  | Case_aux c "afi_mult2" 
-  | Case_aux c "afi_if01" | Case_aux c "afi_if02" 
-  | Case_aux c "afi_if03" ].
+  | Case_aux c "afi_app1" | Case_aux c "afi_app2" | Case_aux c "afi_abs"
+  | Case_aux c "afi_succ" | Case_aux c "afi_pred"
+  | Case_aux c "afi_mult1" | Case_aux c "afi_mult2"
+  | Case_aux c "afi_if01" | Case_aux c "afi_if02" | Case_aux c "afi_if03" ].
 
 Hint Constructors appears_free_in.
 
-(** A term in which no variables appear free is said to be _closed_. *)
+(* ########################################### *)
+(* Substitution *)
 
-Definition closed (t:tm) :=
-  forall x, ~ appears_free_in x t.
+Lemma context_invariance : forall Gamma Gamma' t S,
+     Gamma |- t \in S  ->
+     (forall x, appears_free_in x t -> Gamma x = Gamma' x)  ->
+     Gamma' |- t \in S.
+Proof with eauto.
+  intros. generalize dependent Gamma'. 
+  has_type_cases (induction H) Case; intros Gamma' Heqv; auto.
+  Case "T_Var".
+    apply T_Var. rewrite <- Heqv...
+  Case "T_Abs".
+    apply T_Abs. apply IHhas_type. intros x0 Hafi.
+    (* tricky step... the Gamma' we use to instantiate is 
+       [extend ty Gamma x T1] *)
+    unfold extend. remember (beq_id x x0) as e.
+    destruct e...
+  Case "T_App".
+    apply T_App with T1...
+  Qed.
 
-
-(** substitution *************************************************************)
 Lemma free_in_context : forall x t T Gamma,
    appears_free_in x t ->
    Gamma |- t \in T ->
    exists T', Gamma x = Some T'.
-Proof.
-  intros x t T Gamma H H0. generalize dependent Gamma. 
-  generalize dependent T. 
-  afi_cases (induction H) Case; 
-         intros; try solve [inversion H0; eauto].
+Proof with eauto.
+  intros x t T Gamma Hafi. 
+  generalize dependent Gamma. generalize dependent T.
+  afi_cases (induction Hafi) Case; intros T Gamma Htyp;
+    inversion Htyp; subst...
   Case "afi_abs".
-    inversion H1; subst.
-    apply IHappears_free_in in H7.
-    apply not_eq_beq_id_false in H. 
-    rewrite extend_neq in H7; assumption.
-Qed.
+    destruct (IHHafi _ _ H5) as [T Hctx]. exists T.
+    unfold extend in Hctx.
+    apply not_eq_beq_id_false in H. rewrite H in Hctx.
+    assumption.  Qed.
 
-Lemma context_invariance : forall Gamma Gamma' t T,
-     Gamma |- t \in T  ->
-     (forall x, appears_free_in x t -> Gamma x = Gamma' x) ->
-     Gamma' |- t \in T.
-Proof with eauto.
-  intros. 
-  generalize dependent Gamma'.
-  has_type_cases (induction H) Case; intros; auto.
-  Case "T_Var".
-    apply T_Var. rewrite <- H0...
-  Case "T_Abs".
-    apply T_Abs.
-    apply IHhas_type. intros x1 Hafi.
-    (* the only tricky step... the [Gamma'] we use to 
-       instantiate is [extend Gamma x T11] *)
-    unfold extend. remember (beq_id x x1) as e. destruct e...
-  Case "T_App".
-    apply T_App with T11...  
-Qed.
-
-
-Lemma substitution_preserves_typing : forall Gamma x U t v T,
-     extend Gamma x U |- t \in T ->
+Lemma substitution_preserves_typing : forall Gamma x U v t S,
+     extend Gamma x U |- t \in S  ->
      empty |- v \in U   ->
-     Gamma |- [x:=v]t \in T.
+     Gamma |- [x:=v]t \in S.
 Proof with eauto.
-  intros Gamma x U t t' T Ht Ht'.
-  generalize dependent Gamma. generalize dependent T. 
-  t_cases (induction t) Case; intros T Gamma H;
-    (* in each case, we'll want to get at the derivation of H *)
-    inversion H; subst; simpl...
+  intros Gamma x U v t S Ht Hv. 
+  generalize dependent Gamma.  generalize dependent S. 
+  t_cases (induction t) Case; intros S Gamma H;
+    simpl; inversion H; subst...
   Case "tvar".
     rename i into y. remember (beq_id x y) as e. destruct e.
     SCase "x=y".
-      apply beq_id_eq in Heqe. subst.
-      rewrite extend_eq in H2.
-      inversion H2; subst. clear H2.
-                  eapply context_invariance... intros x Hcontra.
-      destruct (free_in_context _ _ T empty Hcontra) as [T' HT']...
-      inversion HT'.
+      apply beq_id_eq in Heqe. subst. unfold extend in H2.
+      rewrite <- beq_id_refl in H2. inversion H2; subst. clear H2.
+      eapply context_invariance. apply Hv.
+      intros x Hcontra.
+      destruct (free_in_context _ _ _ _ Hcontra Hv) as [T Hctx].
+      inversion Hctx.
     SCase "x<>y".
-      apply T_Var. rewrite extend_neq in H2... 
+      unfold extend in H2. rewrite <- Heqe in H2...
   Case "tabs".
-    rename i into y. apply T_Abs.
+    apply T_Abs. rename i into y.
     remember (beq_id x y) as e. destruct e.
     SCase "x=y".
-      eapply context_invariance...
       apply beq_id_eq in Heqe. subst.
-      intros x Hafi. unfold extend.
-      destruct (beq_id y x)...
+      eapply context_invariance. apply H5.
+      intros. unfold extend.
+      destruct (beq_id y x); reflexivity.
     SCase "x<>y".
-      apply IHt. eapply context_invariance...
+      apply IHt. eapply context_invariance. apply H5.
       intros z Hafi. unfold extend.
       remember (beq_id y z) as e0. destruct e0...
       apply beq_id_eq in Heqe0. subst.
-      rewrite <- Heqe...  
-Qed.
+      rewrite <- Heqe...  Qed.
 
+(* ############################################ *)
+(* Preservation *)
 
-(** preservation *************************************************************)
 Theorem preservation : forall t t' T,
-     empty |- t \in T  ->
-     t ==> t'  ->
-     empty |- t' \in T.
+  empty |- t \in T  ->
+  t ==> t'  ->
+  empty |- t' \in T.
 Proof with eauto.
   remember (@empty ty) as Gamma. 
   intros t t' T HT. generalize dependent t'.   
-  has_type_cases (induction HT) Case;
-       intros t' HE; subst Gamma; subst; 
-       try solve [inversion HE; subst; auto].
-  Case "T_App".
+  has_type_cases (induction HT) Case; intros t' HE; subst;
     inversion HE; subst...
-    (* Most of the cases are immediate by induction, 
-       and [eauto] takes care of them *)
+  Case "T_App".
     SCase "ST_AppAbs".
-      apply substitution_preserves_typing with T11...
+      apply substitution_preserves_typing with T1...
       inversion HT1...  
 Qed.
 
+(* ############################################### *)
+(* Progress *)
 
+Theorem progress : forall t T, 
+  empty |- t \in T ->
+  value t \/ exists t', t ==> t'. 
+Proof with eauto.
+  intros t T Ht.
+  remember (@empty ty) as Gamma.
+  has_type_cases (induction Ht) Case; subst Gamma...
+  Case "T_Var".
+    inversion H. 
+  Case "T_App".
+    right. destruct IHHt1...
+    SCase "t1 is a value".
+      destruct IHHt2...
+      SSCase "t1 is a value".
+        (* since t1 is a value and has an arrow type, 
+           it must be an abs *)
+        inversion H; subst...
+        (* and therefore can't be a nat *)
+        inversion Ht1.
+      SSCase "t2 steps".
+        inversion H0 as [t2' Hstp].
+        exists (tapp t1 t2')...
+    SCase "t1 steps".
+      inversion H as [t1' Hstp].
+      exists (tapp t1' t2)...
+  Case "T_Succ".
+    right. destruct IHHt...
+    SCase "t is a value".
+      inversion H; subst. inversion Ht. exists (tnat (S n))...
+    SCase "t steps".
+      inversion H as [t' Hstp]. exists (tsucc t')...
+  Case "T_Pred".
+    right. destruct IHHt...
+    SCase "t is a value".
+      inversion H; subst. inversion Ht. exists (tnat (pred n))...
+    SCase "t steps".
+      inversion H as [t' Hstp]. exists (tpred t')...
+  Case "T_Mult".
+    right. destruct IHHt1...
+    SCase "t1 is a value".
+      destruct IHHt2...
+      SSCase "t2 is a value".
+        inversion H; subst. inversion Ht1. 
+        inversion H0; subst. inversion Ht2.
+        exists (tnat (mult n n0))...
+      SSCase "t2 steps".
+        inversion H0 as [t' Hstp]. exists (tmult t1 t')...
+    SCase "t1 steps".
+      inversion H as [t' Hstp]. exists (tmult t' t2)...
+  Case "T_If0".
+    right. destruct IHHt1...
+    SCase "t1 is a value".
 
+      inversion H; subst. inversion Ht1. destruct n as [|n'].
+      SSCase "n = 0". exists t2...
+      SSCase "n = S n'". exists t3...
+    SCase "t1 steps".
+      inversion H as [t1' Hstp].
+      exists (tif0 t1' t2 t3)...  Qed.
+
+(** [] *)
 
 End STLCArith.
 
-(* $Date: 2013-04-17 15:00:53 -0400 (Wed, 17 Apr 2013) $ *)
+(* $Date$ *)
 
